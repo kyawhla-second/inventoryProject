@@ -175,7 +175,7 @@
                                 @forelse ($lowStockProducts as $product)
                                     <tr>
                                         <td><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></td>
-                                        <td><span class="badge bg-danger">{{ $product->quantity }}</span></td>
+                                        <td><span class="badge bg-danger">{{ $product->quantity }} {{ $product->unit }}</span></td>
                                     </tr>
                                 @empty
                                     <tr>

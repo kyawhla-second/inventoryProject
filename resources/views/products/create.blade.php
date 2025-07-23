@@ -59,6 +59,17 @@
         </div>
         <div class="col-xs-12 col-sm-12 col-md-12">
             <div class="form-group">
+                <strong>{{__('Unit')}}:</strong>
+                <select name="unit" class="form-control">
+                    <option value="viss">{{ __('Viss (viss)') }}</option>
+                    <option value="box">{{ __('Boxes (box)') }}</option>
+                    <option value="pack">{{ __('Packs (pack)') }}</option>
+                    
+                </select>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <div class="form-group">
                 <strong>{{__('Price')}}:</strong>
                 <input type="text" name="price" class="form-control" placeholder="Price">
             </div>

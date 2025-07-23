@@ -13,6 +13,7 @@ class Purchase extends Model
 
     protected $fillable = [
         'supplier_id',
+        'order_id',
         'purchase_date',
         'total_amount',
         'status',
@@ -26,5 +27,10 @@ class Purchase extends Model
     public function items()
     {
         return $this->hasMany(PurchaseItem::class);
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
     }
 }

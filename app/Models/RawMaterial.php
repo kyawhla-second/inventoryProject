@@ -24,4 +24,28 @@ class RawMaterial extends Model
     {
         return $this->belongsTo(Supplier::class);
     }
+
+    public function usages()
+    {
+        return $this->hasMany(RawMaterialUsage::class);
+    }
+
+    public function isLowStock()
+    {
+        return $this->quantity <= $this->minimum_stock_level;
+    }
+
+    public function getTotalUsageForPeriod($startDate, $endDate)
+    {
+        return $this->usages()
+            ->whereBetween('usage_date', [$startDate, $endDate])
+            ->sum('quantity_used');
+    }
+
+    public function getTotalCostForPeriod($startDate, $endDate)
+    {
+        return $this->usages()
+            ->whereBetween('usage_date', [$startDate, $endDate])
+            ->sum('total_cost');
+    }
 }

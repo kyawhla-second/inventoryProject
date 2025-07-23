@@ -16,6 +16,7 @@ class Product extends Model
         'barcode',
         'image',
         'quantity',
+        'unit',
         'price',
         'cost',
         'minimum_stock_level',
@@ -25,5 +26,10 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function rawMaterialUsages()
+    {
+        return $this->hasMany(RawMaterialUsage::class);
     }
 }

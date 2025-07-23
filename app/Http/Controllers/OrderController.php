@@ -51,7 +51,7 @@ class OrderController extends Controller
             'products.*.price'       => 'required|numeric|min:0',
         ]);
 
-        \DB::transaction(function () use ($request) {
+        $order = \DB::transaction(function () use ($request) {
             $totalAmount = 0;
             foreach ($request->products as $item) {
                 $totalAmount += $item['quantity'] * $item['price'];
@@ -77,9 +77,16 @@ class OrderController extends Controller
                     $product->decrement('quantity', $item['quantity']);
                 }
             }
+
+            return $order;
         });
 
-        return redirect()->route('orders.index')->with('success', 'Order created successfully.');
+        // Automatically create invoice for the order
+        if ($order) {
+            $invoice = (new \App\Models\Invoice())->createFromOrder($order);
+        }
+
+        return redirect()->route('orders.show', $order)->with('success', 'Order and invoice created successfully.');
     }
 
     /**
@@ -120,5 +127,60 @@ class OrderController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Convert order to sale
+     */
+    public function convertToSale(Order $order)
+    {
+        try {
+            $sale = $order->convertToSale();
+            
+            // Update order status
+            $order->update(['status' => 'completed']);
+            
+            return redirect()->route('sales.show', $sale)
+                ->with('success', 'Order converted to sale successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to convert order to sale: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show form to create purchase order from customer order
+     */
+    public function createPurchaseForm(Order $order)
+    {
+        $suppliers = \App\Models\Supplier::all();
+        $products = \App\Models\Product::all();
+        
+        return view('orders.create-purchase', compact('order', 'suppliers', 'products'));
+    }
+
+    /**
+     * Create purchase order from customer order
+     */
+    public function createPurchase(Request $request, Order $order)
+    {
+        $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'nullable|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.price' => 'required|numeric|min:0',
+            'items.*.description' => 'required|string|max:255',
+        ]);
+
+        try {
+            $purchase = $order->createPurchaseOrder($request->supplier_id, $request->items);
+            
+            return redirect()->route('purchases.show', $purchase)
+                ->with('success', 'Purchase order created successfully from customer order.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to create purchase order: ' . $e->getMessage());
+        }
     }
 }

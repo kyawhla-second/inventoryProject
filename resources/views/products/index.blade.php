@@ -35,6 +35,7 @@
             <th>{{__('Name')}}</th>
             <th>{{__('Category')}}</th>
             <th>{{__('Quantity')}}</th>
+            <th>{{__('Unit')}}</th>
             <th>{{__('Price')}}</th>
             <th width="280px">{{__('Action')}}</th>
         </tr>
@@ -44,6 +45,7 @@
             <td>{{ $product->name }}</td>
             <td>{{ $product->category->name }}</td>
             <td>{{ $product->quantity }}</td>
+            <td>{{ $product->unit }}</td>
             <td>@money($product->price)</td>
             <td>
                 <form action="{{ route('products.destroy',$product->id) }}" method="POST">

@@ -13,6 +13,7 @@ class Sale extends Model
         'sale_date',
         'total_amount',
         'customer_id',
+        'order_id',
     ];
 
     public function customer()
@@ -23,5 +24,15 @@ class Sale extends Model
     public function items()
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class);
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
     }
 }

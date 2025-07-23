@@ -46,4 +46,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function dailyCharges()
+    {
+        return $this->hasMany(StaffDailyCharge::class);
+    }
+
+    public function createdProfitLossStatements()
+    {
+        return $this->hasMany(ProfitLossStatement::class, 'created_by');
+    }
 }

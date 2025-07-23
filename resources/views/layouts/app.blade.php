@@ -27,6 +27,12 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">{{ __('Reports') }}</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('staff-charges.*') ? 'active' : '' }}" href="{{ route('staff-charges.index') }}">{{ __('Staff Charges') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('profit-loss.*') ? 'active' : '' }}" href="{{ route('profit-loss.index') }}">{{ __('Profit & Loss') }}</a>
+                            </li>
                         @endif
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}">{{ __('Products') }}</a>
@@ -47,7 +53,13 @@
                             <a class="nav-link {{ request()->routeIs('raw-materials.low-stock') ? 'active' : '' }}" href="{{ route('raw-materials.low-stock') }}">{{ __('Low Stock Raw Materials') }}</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('raw-material-usages.*') ? 'active' : '' }}" href="{{ route('raw-material-usages.index') }}">{{ __('Material Usage') }}</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('orders.*') ? 'active' : '' }}" href="{{ route('orders.index') }}">{{ __('Customer Orders') }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('invoices.*') ? 'active' : '' }}" href="{{ route('invoices.index') }}">{{ __('Invoices') }}</a>
                         </li>
                     @endauth
                 </ul>

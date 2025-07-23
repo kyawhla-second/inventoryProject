@@ -31,12 +31,7 @@
                 {{ $product->barcode }}
             </div>
         </div>
-        <div class="col-xs-12 col-sm-12 col-md-12">
-            <div class="form-group">
-                <strong>{{__('Image')}}:</strong>
-                <img src="/images/{{ $product->image }}" width="200px">
-            </div>
-        </div>
+      
         <div class="col-xs-12 col-sm-12 col-md-12">
             <div class="form-group">
                 <strong>{{__('Category')}}:</strong>
@@ -46,13 +41,19 @@
         <div class="col-xs-12 col-sm-12 col-md-12">
             <div class="form-group">
                 <strong>{{__('Quantity')}}:</strong>
-                {{ $product->quantity }}
+                {{ $product->quantity }} {{ $product->unit }}
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <div class="form-group">
+                <strong>{{__('Unit')}}:</strong>
+                {{ $product->unit }}
             </div>
         </div>
         <div class="col-xs-12 col-sm-12 col-md-12">
             <div class="form-group">
                 <strong>{{__('Price')}}:</strong>
-                @money($product->price)
+                @money($product->price) {{ __('per') }} {{ $product->unit }}
             </div>
         </div>
         <div class="col-xs-12 col-sm-12 col-md-12">

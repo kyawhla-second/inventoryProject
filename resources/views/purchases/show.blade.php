@@ -4,7 +4,14 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>{{__('Purchase Details')}}</h1>
-        <a href="{{ route('purchases.index') }}" class="btn btn-secondary">{{__('Back to List')}}</a>
+        <div>
+            @if($purchase->order)
+                <a href="{{ route('orders.show', $purchase->order) }}" class="btn btn-info me-2">
+                    <i class="fas fa-list-alt"></i> {{ __('View Related Order') }}
+                </a>
+            @endif
+            <a href="{{ route('purchases.index') }}" class="btn btn-secondary">{{__('Back to List')}}</a>
+        </div>
     </div>
 
     <div class="card">
@@ -15,6 +22,14 @@
             <p><strong>{{__('Date')}}:</strong> {{ $purchase->purchase_date }}</p>
             <p><strong>{{__('Supplier')}}:</strong> {{ $purchase->supplier->name }}</p>
             <p><strong>{{__('Total Amount')}}:</strong> ${{ number_format($purchase->total_amount, 2) }}</p>
+            @if($purchase->order)
+                <p><strong>{{__('Related Customer Order')}}:</strong> 
+                    <a href="{{ route('orders.show', $purchase->order) }}" class="btn btn-sm btn-outline-primary">
+                        Order #{{ $purchase->order->id }} - {{ $purchase->order->customer->name ?? 'No Customer' }}
+                        ({{ $purchase->order->order_date->format('M d, Y') }})
+                    </a>
+                </p>
+            @endif
 
             <h5 class="mt-4">{{__('Items')}}</h5>
             <table class="table table-bordered">
