@@ -115,6 +115,164 @@
         </div>
     </div>
 
+    <!-- Monthly Financial Metrics Header -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-gray-800">{{__('Monthly Financial Overview')}}</h5>
+                <div class="d-flex align-items-center">
+                    <label for="monthSelector" class="form-label me-2 mb-0 text-sm">{{__('Select Month:')}}</label>
+                    <select id="monthSelector" class="form-select form-select-sm" style="width: auto;" onchange="updateFinancialMetrics()">
+                        @for($i = 0; $i < 12; $i++)
+                            @php
+                                $monthDate = now()->subMonths($i);
+                                $monthValue = $monthDate->format('Y-m');
+                                $monthLabel = $monthDate->format('F Y');
+                                $isSelected = $monthValue === (request('month') ?? now()->format('Y-m'));
+                            @endphp
+                            <option value="{{ $monthValue }}" {{ $isSelected ? 'selected' : '' }}>
+                                {{ $monthLabel }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Financial Metrics Row -->
+    <div class="row">
+        <!-- Monthly Revenue Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                {{__('Monthly Revenue')}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@money($monthlyRevenue ?? $currentMonthSales ?? 0)</div>
+                            <div class="text-xs text-muted mt-1">
+                                @php
+                                    $revenueChange = ($monthlyRevenueChange ?? 0);
+                                    $isPositive = $revenueChange >= 0;
+                                @endphp
+                                <i class="fas fa-arrow-{{ $isPositive ? 'up' : 'down' }} text-{{ $isPositive ? 'success' : 'danger' }}"></i>
+                                {{ $isPositive ? '+' : '' }}{{ number_format(abs($revenueChange), 1) }}% {{__('vs last month')}}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Expenses Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                {{__('Monthly Expenses')}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@money($monthlyExpenses ?? 0)</div>
+                            <div class="text-xs text-muted mt-1">
+                                @php
+                                    $expenseChange = ($monthlyExpenseChange ?? 0);
+                                    $isPositive = $expenseChange <= 0; // For expenses, decrease is positive
+                                @endphp
+                                <i class="fas fa-arrow-{{ $expenseChange >= 0 ? 'up' : 'down' }} text-{{ $isPositive ? 'success' : 'danger' }}"></i>
+                                {{ $expenseChange >= 0 ? '+' : '' }}{{ number_format(abs($expenseChange), 1) }}% {{__('vs last month')}}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-receipt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Net Profit Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            @php
+                $monthlyProfit = ($monthlyNetProfit ?? (($monthlyRevenue ?? $currentMonthSales ?? 0) - ($monthlyExpenses ?? 0)));
+                $profitChange = ($monthlyProfitChange ?? 0);
+            @endphp
+            <div class="card border-left-{{ $monthlyProfit >= 0 ? 'primary' : 'warning' }} shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-{{ $monthlyProfit >= 0 ? 'primary' : 'warning' }} text-uppercase mb-1">
+                                {{__('Monthly Net Profit')}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @money($monthlyProfit)
+                            </div>
+                            <div class="text-xs text-muted mt-1">
+                                @if($monthlyProfit >= 0)
+                                    <i class="fas fa-arrow-{{ $profitChange >= 0 ? 'up' : 'down' }} text-{{ $profitChange >= 0 ? 'success' : 'warning' }}"></i>
+                                    {{ $profitChange >= 0 ? '+' : '' }}{{ number_format(abs($profitChange), 1) }}% {{__('vs last month')}}
+                                @else
+                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                    {{__('Loss this month')}}
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-{{ $monthlyProfit >= 0 ? 'trophy' : 'exclamation-triangle' }} fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Summary Row -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-left-info shadow py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                {{__('Monthly Summary')}} - {{ now()->parse(request('month', now()->format('Y-m')))->format('F Y') }}
+                            </div>
+                            <div class="row text-sm">
+                                <div class="col-md-3">
+                                    <strong>{{__('Revenue')}}:</strong> @money($monthlyRevenue ?? $currentMonthSales ?? 0)
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>{{__('Expenses')}}:</strong> @money($monthlyExpenses ?? 0)
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>{{__('Net Profit')}}:</strong> 
+                                    <span class="text-{{ $monthlyProfit >= 0 ? 'success' : 'danger' }}">
+                                        @money($monthlyProfit)
+                                    </span>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>{{__('Profit Margin')}}:</strong> 
+                                    @php
+                                        $profitMargin = ($monthlyRevenue ?? $currentMonthSales ?? 0) > 0 
+                                            ? ($monthlyProfit / ($monthlyRevenue ?? $currentMonthSales ?? 1)) * 100 
+                                            : 0;
+                                    @endphp
+                                    <span class="text-{{ $profitMargin >= 0 ? 'success' : 'danger' }}">
+                                        {{ number_format($profitMargin, 1) }}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Content Row -->
     <div class="row">
         <!-- Recent Sales -->
@@ -377,6 +535,33 @@
                 }
             }
         });
+    });
+
+    // Monthly Financial Metrics Update Function
+    function updateFinancialMetrics() {
+        const monthSelector = document.getElementById('monthSelector');
+        const selectedMonth = monthSelector.value;
+        
+        // Add loading state
+        monthSelector.disabled = true;
+        
+        // Create URL with month parameter
+        const url = new URL(window.location.href);
+        url.searchParams.set('month', selectedMonth);
+        
+        // Redirect to update the dashboard with selected month
+        window.location.href = url.toString();
+    }
+
+    // Initialize month selector on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const monthSelector = document.getElementById('monthSelector');
+        if (monthSelector) {
+            // Set the current month from URL parameter or default to current month
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentMonth = urlParams.get('month') || new Date().toISOString().slice(0, 7);
+            monthSelector.value = currentMonth;
+        }
     });
 </script>
 @endpush
