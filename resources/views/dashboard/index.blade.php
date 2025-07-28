@@ -1,5 +1,32 @@
 @extends('layouts.app')
 
+@push('styles')
+<style>
+    /* Dark mode month selector styling */
+    #monthSelector {
+        background: rgba(255,255,255,0.1) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        color: white !important;
+    }
+    
+    #monthSelector:focus {
+        background: rgba(255,255,255,0.15) !important;
+        border-color: rgba(255,255,255,0.3) !important;
+        box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25) !important;
+    }
+    
+    #monthSelector option {
+        background: #2d3748 !important;
+        color: white !important;
+    }
+    
+    /* Dark mode label styling */
+    .form-label {
+        color: white !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <!-- Page Heading -->
@@ -7,7 +34,7 @@
         <h1 class="h3 mb-0 text-gray-800">{{__('Dashboard')}}</h1>
     </div>
 
-    <!-- Content Row -->
+    <!-- Colorful Stats-->
     <div class="row">
 
         <!-- Total Products Card -->
@@ -122,7 +149,7 @@
                 <h5 class="mb-0 text-gray-800">{{__('Monthly Financial Overview')}}</h5>
                 <div class="d-flex align-items-center">
                     <label for="monthSelector" class="form-label me-2 mb-0 text-sm">{{__('Select Month:')}}</label>
-                    <select id="monthSelector" class="form-select form-select-sm" style="width: auto;" onchange="updateFinancialMetrics()">
+                    <select id="monthSelector" class="form-select form-select-sm" style="width: auto; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;" onchange="updateFinancialMetrics()">
                         @for($i = 0; $i < 12; $i++)
                             @php
                                 $monthDate = now()->subMonths($i);
@@ -130,7 +157,7 @@
                                 $monthLabel = $monthDate->format('F Y');
                                 $isSelected = $monthValue === (request('month') ?? now()->format('Y-m'));
                             @endphp
-                            <option value="{{ $monthValue }}" {{ $isSelected ? 'selected' : '' }}>
+                            <option value="{{ $monthValue }}" {{ $isSelected ? 'selected' : '' }} style="background: #2d3748; color: white;">
                                 {{ $monthLabel }}
                             </option>
                         @endfor
