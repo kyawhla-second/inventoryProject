@@ -32,4 +32,19 @@ class Product extends Model
     {
         return $this->hasMany(RawMaterialUsage::class);
     }
+
+    public function recipes()
+    {
+        return $this->hasMany(Recipe::class);
+    }
+
+    public function activeRecipe()
+    {
+        return $this->hasOne(Recipe::class)->where('is_active', true)->latest();
+    }
+
+    public function productionPlanItems()
+    {
+        return $this->hasMany(ProductionPlanItem::class);
+    }
 }

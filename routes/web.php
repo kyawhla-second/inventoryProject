@@ -15,6 +15,10 @@ use App\Http\Controllers\StaffDailyChargeController;
 use App\Http\Controllers\ProfitLossController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\RawMaterialUsageController;
+use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\ProductionPlanController;
+use App\Http\Controllers\ProductionReportController;
+use App\Http\Controllers\StaffController;
 
 Auth::routes();
 
@@ -44,6 +48,29 @@ Route::middleware('auth')->group(function () {
         Route::get('raw-material-usages-bulk/create', [RawMaterialUsageController::class, 'bulkCreate'])->name('raw-material-usages.bulk-create');
         Route::post('raw-material-usages-bulk/store', [RawMaterialUsageController::class, 'bulkStore'])->name('raw-material-usages.bulk-store');
         Route::get('raw-materials/{rawMaterial}/usage-stats', [RawMaterialUsageController::class, 'getUsageStats'])->name('raw-materials.usage-stats');
+        
+        // Recipe Management
+        Route::resource('recipes', RecipeController::class);
+        Route::get('recipes/{recipe}/calculate-cost', [RecipeController::class, 'calculateCost'])->name('recipes.calculate-cost');
+        Route::post('recipes/{recipe}/duplicate', [RecipeController::class, 'duplicate'])->name('recipes.duplicate');
+        
+        // Production Planning
+        Route::resource('production-plans', ProductionPlanController::class);
+        Route::patch('production-plans/{productionPlan}/approve', [ProductionPlanController::class, 'approve'])->name('production-plans.approve');
+        Route::patch('production-plans/{productionPlan}/start', [ProductionPlanController::class, 'start'])->name('production-plans.start');
+        Route::patch('production-plans/{productionPlan}/complete', [ProductionPlanController::class, 'complete'])->name('production-plans.complete');
+        Route::get('production-plans/{productionPlan}/material-requirements', [ProductionPlanController::class, 'materialRequirements'])->name('production-plans.material-requirements');
+        Route::post('production-plans/{productionPlan}/record-usage', [ProductionPlanController::class, 'recordActualUsage'])->name('production-plans.record-usage');
+        
+        // Production Reports
+        Route::get('production-reports', [ProductionReportController::class, 'index'])->name('production-reports.index');
+        Route::get('production-reports/variance-analysis', [ProductionReportController::class, 'varianceAnalysis'])->name('production-reports.variance-analysis');
+        Route::get('production-reports/material-efficiency', [ProductionReportController::class, 'materialEfficiency'])->name('production-reports.material-efficiency');
+        Route::get('production-reports/production-summary', [ProductionReportController::class, 'productionSummary'])->name('production-reports.production-summary');
+        Route::get('production-reports/cost-analysis', [ProductionReportController::class, 'costAnalysis'])->name('production-reports.cost-analysis');
+        Route::get('production-reports/variance-analysis/export', [ProductionReportController::class, 'exportVarianceAnalysis'])->name('production-reports.variance-analysis.export');
+        Route::get('production-reports/material-efficiency/export', [ProductionReportController::class, 'exportMaterialEfficiency'])->name('production-reports.material-efficiency.export');
+        
         Route::resource('orders', OrderController::class);
         Route::post('orders/{order}/convert-to-sale', [OrderController::class, 'convertToSale'])->name('orders.convert-to-sale');
         Route::get('orders/{order}/create-purchase', [OrderController::class, 'createPurchaseForm'])->name('orders.create-purchase-form');
@@ -69,6 +96,18 @@ Route::middleware('auth')->group(function () {
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::post('reports/sales', [ReportController::class, 'salesReport'])->name('reports.sales');
         
+        // Staff Management
+        Route::resource('staff', StaffController::class);
+        Route::get('staff-create-simple', function() {
+            $supervisors = \App\Models\Staff::where('status', 'active')->get();
+            $users = \App\Models\User::whereDoesntHave('staff')->get();
+            return view('staff.create-simple', compact('supervisors', 'users'));
+        })->name('staff.create.simple');
+        Route::get('staff/{staff}/charges', [StaffController::class, 'charges'])->name('staff.charges');
+        Route::get('staff/{staff}/charges/create', [StaffController::class, 'createCharge'])->name('staff.charges.create');
+        Route::post('staff/{staff}/charges', [StaffController::class, 'storeCharge'])->name('staff.charges.store');
+        Route::get('staff-dashboard', [StaffController::class, 'dashboard'])->name('staff.dashboard');
+        
         // Staff Daily Charges
         Route::resource('staff-charges', StaffDailyChargeController::class);
         Route::patch('staff-charges/{staffCharge}/approve', [StaffDailyChargeController::class, 'approve'])->name('staff-charges.approve');
@@ -82,3 +121,67 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+// Test route for production features
+Route::get('/test-production', function () {
+    $recipes = \App\Models\Recipe::with(['product', 'recipeItems.rawMaterial'])->get();
+    $plans = \App\Models\ProductionPlan::with('productionPlanItems.product')->get();
+    
+    return response()->json([
+        'message' => 'Production features are working!',
+        'recipes_count' => $recipes->count(),
+        'production_plans_count' => $plans->count(),
+        'sample_recipe' => $recipes->first()?->toArray(),
+    ]);
+});
+
+// Test route for staff features
+Route::get('/test-staff', function () {
+    $staff = \App\Models\Staff::with(['user', 'supervisor', 'dailyCharges'])->get();
+    $charges = \App\Models\StaffDailyCharge::with(['user', 'staff'])->get();
+    
+    return response()->json([
+        'message' => 'Staff management features are working!',
+        'staff_count' => $staff->count(),
+        'charges_count' => $charges->count(),
+        'sample_staff' => $staff->first()?->toArray(),
+        'departments' => $staff->pluck('department')->unique()->values(),
+    ]);
+});
+
+// Test route for staff creation
+Route::get('/test-staff-create', function () {
+    try {
+        $staff = \App\Models\Staff::create([
+            'first_name' => 'Test',
+            'last_name' => 'User',
+            'email' => 'test.user.' . time() . '@example.com',
+            'hire_date' => now(),
+            'position' => 'Test Position',
+            'base_salary' => 3000,
+            'hourly_rate' => 15,
+            'employment_type' => 'full_time',
+            'status' => 'active',
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Staff created successfully!',
+            'staff' => $staff->toArray(),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+        ]);
+    }
+});
+
+// Debug route for staff form submission
+Route::post('/debug-staff-create', function (\Illuminate\Http\Request $request) {
+    return response()->json([
+        'request_data' => $request->all(),
+        'validation_errors' => [],
+        'files' => $request->hasFile('profile_photo') ? 'Has file' : 'No file',
+    ]);
+})->name('debug.staff.store');

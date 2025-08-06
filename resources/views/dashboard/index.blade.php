@@ -2,26 +2,66 @@
 
 @push('styles')
 <style>
-    /* Dark mode month selector styling */
+    /* Month selector styling - Light mode (default) */
     #monthSelector {
-        background: rgba(255,255,255,0.1) !important;
+        background: white !important;
+        border: 1px solid #ced4da !important;
+        color: #333 !important;
+    }
+    
+    #monthSelector:focus {
+        background: white !important;
+        border-color: #80bdff !important;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25) !important;
+    }
+    
+    #monthSelector option {
+        background: white !important;
+        color: #333 !important;
+    }
+    
+    /* Label styling for light mode */
+    .monthly-overview-label {
+        color: #495057 !important;
+    }
+    
+    /* Dark mode detection and overrides */
+    @media (prefers-color-scheme: dark) {
+        #monthSelector {
+            background: rgba(45, 55, 72, 0.9) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+            color: white !important;
+        }
+        
+        #monthSelector:focus {
+            background: rgba(45, 55, 72, 1) !important;
+            border-color: rgba(255,255,255,0.3) !important;
+            box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25) !important;
+        }
+        
+        #monthSelector option {
+            background: #2d3748 !important;
+            color: white !important;
+        }
+        
+        .monthly-overview-label {
+            color: white !important;
+        }
+    }
+    
+    /* Additional fallback for body class detection */
+    body.dark-mode #monthSelector {
+        background: rgba(45, 55, 72, 0.9) !important;
         border: 1px solid rgba(255,255,255,0.2) !important;
         color: white !important;
     }
     
-    #monthSelector:focus {
-        background: rgba(255,255,255,0.15) !important;
-        border-color: rgba(255,255,255,0.3) !important;
-        box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25) !important;
-    }
-    
-    #monthSelector option {
+    body.dark-mode #monthSelector option {
         background: #2d3748 !important;
         color: white !important;
     }
     
-    /* Dark mode label styling */
-    .form-label {
+    body.dark-mode .monthly-overview-label {
         color: white !important;
     }
 </style>
@@ -89,7 +129,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div
 
         <!-- Total Orders Card -->
         <div class="col-xl-3 col-md-6 mb-4">
@@ -123,33 +163,14 @@
             </div>
         @endforeach
 
-        <!-- Total Sales Amount Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                {{__('Total Sales')}}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@money($totalSalesAmount)</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Monthly Financial Metrics Header -->
     <div class="row mb-3">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-gray-800">{{__('Monthly Financial Overview')}}</h5>
                 <div class="d-flex align-items-center">
-                    <label for="monthSelector" class="form-label me-2 mb-0 text-sm">{{__('Select Month:')}}</label>
-                    <select id="monthSelector" class="form-select form-select-sm" style="width: auto; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;" onchange="updateFinancialMetrics()">
+                    <label for="monthSelector" class="form-label monthly-overview-label me-2 mb-0 text-sm">{{__('Select Month:')}}</label>
+                    <select id="monthSelector" class="form-select form-select-sm" style="width: auto;" onchange="updateFinancialMetrics()">
                         @for($i = 0; $i < 12; $i++)
                             @php
                                 $monthDate = now()->subMonths($i);
@@ -157,7 +178,7 @@
                                 $monthLabel = $monthDate->format('F Y');
                                 $isSelected = $monthValue === (request('month') ?? now()->format('Y-m'));
                             @endphp
-                            <option value="{{ $monthValue }}" {{ $isSelected ? 'selected' : '' }} style="background: #2d3748; color: white;">
+                            <option value="{{ $monthValue }}" {{ $isSelected ? 'selected' : '' }}>
                                 {{ $monthLabel }}
                             </option>
                         @endfor

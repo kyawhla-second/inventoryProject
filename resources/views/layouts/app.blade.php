@@ -679,6 +679,19 @@
                         </a>
                     </div>
 
+                    <div class="nav-section">
+                        <div class="nav-section-title">{{ __('Production') }}</div>
+                        <a href="{{ route('recipes.index') }}" class="nav-item-custom {{ request()->routeIs('recipes.*') ? 'active' : '' }}">
+                            <i class="fas fa-clipboard-list"></i>{{ __('Recipes/BOM') }}
+                        </a>
+                        <a href="{{ route('production-plans.index') }}" class="nav-item-custom {{ request()->routeIs('production-plans.*') ? 'active' : '' }}">
+                            <i class="fas fa-calendar-alt"></i>{{ __('Production Plans') }}
+                        </a>
+                        <a href="{{ route('production-reports.index') }}" class="nav-item-custom {{ request()->routeIs('production-reports.*') ? 'active' : '' }}">
+                            <i class="fas fa-chart-pie"></i>{{ __('Production Reports') }}
+                        </a>
+                    </div>
+
                     @if(auth()->user()->role == 'admin')
                     <div class="nav-section">
                         <div class="nav-section-title">{{ __('Management') }}</div>
@@ -687,6 +700,9 @@
                         </a>
                         <a href="{{ route('suppliers.index') }}" class="nav-item-custom {{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
                             <i class="fas fa-truck"></i>{{ __('Suppliers') }}
+                        </a>
+                        <a href="{{ route('staff.index') }}" class="nav-item-custom {{ request()->routeIs('staff.*') ? 'active' : '' }}">
+                            <i class="fas fa-users"></i>{{ __('Staff Management') }}
                         </a>
                         <a href="{{ route('staff-charges.index') }}" class="nav-item-custom {{ request()->routeIs('staff-charges.*') ? 'active' : '' }}">
                             <i class="fas fa-user-tie"></i>{{ __('Staff Charges') }}

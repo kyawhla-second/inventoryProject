@@ -56,4 +56,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(ProfitLossStatement::class, 'created_by');
     }
+
+    public function staff()
+    {
+        return $this->hasOne(Staff::class);
+    }
 }

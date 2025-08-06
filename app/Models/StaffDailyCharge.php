@@ -35,6 +35,11 @@ class StaffDailyCharge extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function staff()
+    {
+        return $this->belongsTo(Staff::class, 'user_id', 'user_id');
+    }
+
     public function calculateTotalCharge()
     {
         $regularPay = $this->daily_rate * ($this->hours_worked / 8);

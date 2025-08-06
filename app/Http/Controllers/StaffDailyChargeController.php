@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\StaffDailyCharge;
 use App\Models\User;
+use App\Models\Staff;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,7 +15,7 @@ class StaffDailyChargeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = StaffDailyCharge::with('user');
+        $query = StaffDailyCharge::with(['user', 'staff']);
 
         // Filter by date range
         if ($request->filled('start_date') && $request->filled('end_date')) {
@@ -32,9 +33,10 @@ class StaffDailyChargeController extends Controller
         }
 
         $charges = $query->orderBy('charge_date', 'desc')->paginate(15);
-        $users = User::where('role', '!=', 'admin')->get();
+        $users = User::whereHas('staff')->get();
+        $staff = Staff::with('user')->where('status', 'active')->get();
 
-        return view('staff-charges.index', compact('charges', 'users'));
+        return view('staff-charges.index', compact('charges', 'users', 'staff'));
     }
 
     /**

@@ -77,7 +77,8 @@
         <div class="col-xs-12 col-sm-12 col-md-12">
                 <div class="form-group">
                     <strong>Cost:</strong>
-                <input type="number" step="0.01" name="cost" class="form-control" placeholder="Cost">
+                <input type="number" step="0" name="cost" class="form-control" placeholder="Cost">
+
             </div>
         </div>
         <div class="col-xs-12 col-sm-12 col-md-12">

@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $totalProducts = Product::count();
         $totalCustomers = Customer::count();
@@ -30,12 +30,41 @@ class DashboardController extends Controller
         $ordersByStatus = Order::selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
         $totalOrders = $ordersByStatus->sum();
 
+        // Get selected month from request or default to current month
+        $selectedMonth = $request->get('month', Carbon::now()->format('Y-m'));
+        $selectedDate = Carbon::createFromFormat('Y-m', $selectedMonth);
+        $startOfMonth = $selectedDate->copy()->startOfMonth();
+        $endOfMonth = $selectedDate->copy()->endOfMonth();
+
         // Monthly Sales Goal
         $monthlySalesGoal = Setting::get('monthly_sales_goal', 10000);
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $endOfMonth = Carbon::now()->endOfMonth();
-        $currentMonthSales = Sale::whereBetween('created_at', [$startOfMonth, $endOfMonth])->sum('total_amount');
+        $currentMonthSales = Sale::whereBetween('sale_date', [$startOfMonth, $endOfMonth])->sum('total_amount');
         $salesProgressPercentage = ($monthlySalesGoal > 0) ? ($currentMonthSales / $monthlySalesGoal) * 100 : 0;
+
+        // Monthly Revenue (same as sales for this context)
+        $monthlyRevenue = $currentMonthSales;
+
+        // Monthly Expenses Calculation
+        $monthlyPurchases = Purchase::whereBetween('purchase_date', [$startOfMonth, $endOfMonth])->sum('total_amount');
+        $monthlyStaffCosts = \App\Models\StaffDailyCharge::whereBetween('charge_date', [$startOfMonth, $endOfMonth])->sum('total_charge');
+        $monthlyExpenses = $monthlyPurchases + $monthlyStaffCosts;
+
+        // Previous month for comparison
+        $prevMonthStart = $selectedDate->copy()->subMonth()->startOfMonth();
+        $prevMonthEnd = $selectedDate->copy()->subMonth()->endOfMonth();
+        $prevMonthSales = Sale::whereBetween('sale_date', [$prevMonthStart, $prevMonthEnd])->sum('total_amount');
+        $prevMonthPurchases = Purchase::whereBetween('purchase_date', [$prevMonthStart, $prevMonthEnd])->sum('total_amount');
+        $prevMonthStaffCosts = \App\Models\StaffDailyCharge::whereBetween('charge_date', [$prevMonthStart, $prevMonthEnd])->sum('total_charge');
+        $prevMonthExpenses = $prevMonthPurchases + $prevMonthStaffCosts;
+        
+        // Calculate percentage changes
+        $monthlyRevenueChange = $prevMonthSales > 0 ? (($monthlyRevenue - $prevMonthSales) / $prevMonthSales) * 100 : 0;
+        $monthlyExpenseChange = $prevMonthExpenses > 0 ? (($monthlyExpenses - $prevMonthExpenses) / $prevMonthExpenses) * 100 : 0;
+        
+        // Monthly Profit
+        $monthlyProfit = $monthlyRevenue - $monthlyExpenses;
+        $prevMonthProfit = $prevMonthSales - $prevMonthExpenses;
+        $monthlyProfitChange = $prevMonthProfit != 0 ? (($monthlyProfit - $prevMonthProfit) / abs($prevMonthProfit)) * 100 : 0;
 
         $recentSales = Sale::with('customer')->latest()->take(10)->get();
 
@@ -88,7 +117,14 @@ class DashboardController extends Controller
             'salesTotals',
             'purchaseTotals',
             'topProductLabels',
-            'topProductQuantities'
+            'topProductQuantities',
+            'monthlyExpenses',
+            'monthlyExpenseChange',
+            'monthlyRevenue',
+            'monthlyRevenueChange',
+            'monthlyProfit',
+            'monthlyProfitChange',
+            'selectedMonth'
         ));
     }
 

@@ -21,7 +21,7 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="purchase_date">{{__('Purchase Date')}}</label>
-                    <input type="date" name="purchase_date" id="purchase_date" class="form-control" required>
+                    <input type="date" name="purchase_date" id="purchase_date" value="{{ now()->format('Y-m-d') }}" class="form-control"  required>
                 </div>
             </div>
         </div>

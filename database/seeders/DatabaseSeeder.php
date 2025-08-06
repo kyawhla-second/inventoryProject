@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
             PurchaseSeeder::class,
             SaleSeeder::class,
             OrderSeeder::class,
+            RecipeSeeder::class,
+            StaffSeeder::class,
         ]);
     }
 }
