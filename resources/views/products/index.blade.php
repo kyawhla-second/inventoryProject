@@ -50,6 +50,9 @@
             <td>
                 <form action="{{ route('products.destroy',$product->id) }}" method="POST">
                     <a class="btn btn-info" href="{{ route('products.show',$product->id) }}">{{__('Show')}}</a>
+                    <a class="btn btn-success btn-sm" href="{{ route('products.raw-materials.index', $product->id) }}" title="Raw Materials">
+                        <i class="fas fa-industry"></i>
+                    </a>
                     <a class="btn btn-primary" href="{{ route('products.edit',$product->id) }}">{{__('Edit')}}</a>
                     @csrf
                     @method('DELETE')

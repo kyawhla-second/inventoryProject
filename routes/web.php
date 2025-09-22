@@ -19,6 +19,7 @@ use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\ProductionPlanController;
 use App\Http\Controllers\ProductionReportController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\ProductRawMaterialController;
 
 Auth::routes();
 
@@ -37,6 +38,16 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:admin,staff')->group(function () {
         Route::resource('products', ProductController::class);
+        
+        // Product Raw Material Relationships
+        Route::get('products/{product}/raw-materials', [ProductRawMaterialController::class, 'index'])->name('products.raw-materials.index');
+        Route::get('products/{product}/raw-materials/create', [ProductRawMaterialController::class, 'create'])->name('products.raw-materials.create');
+        Route::post('products/{product}/raw-materials', [ProductRawMaterialController::class, 'store'])->name('products.raw-materials.store');
+        Route::get('products/{product}/raw-materials/{rawMaterial}/edit', [ProductRawMaterialController::class, 'edit'])->name('products.raw-materials.edit');
+        Route::put('products/{product}/raw-materials/{rawMaterial}', [ProductRawMaterialController::class, 'update'])->name('products.raw-materials.update');
+        Route::delete('products/{product}/raw-materials/{rawMaterial}', [ProductRawMaterialController::class, 'destroy'])->name('products.raw-materials.destroy');
+        Route::get('products/{product}/calculate-cost', [ProductRawMaterialController::class, 'calculateCost'])->name('products.calculate-cost');
+        Route::post('products/{product}/raw-materials/bulk-add', [ProductRawMaterialController::class, 'bulkAdd'])->name('products.raw-materials.bulk-add');
         Route::resource('purchases', PurchaseController::class);
         Route::resource('sales', SaleController::class);
         Route::resource('customers', CustomerController::class);

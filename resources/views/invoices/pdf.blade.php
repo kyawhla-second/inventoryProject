@@ -222,8 +222,9 @@
     <table class="items-table">
         <thead>
             <tr>
-                <th style="width: 50%;">Description</th>
+                <th style="width: 40%;">Description</th>
                 <th style="width: 15%;" class="text-center">Quantity</th>
+                <th style="width: 10%;" class="text-center">Unit</th>
                 <th style="width: 15%;" class="text-right">Unit Price</th>
                 <th style="width: 20%;" class="text-right">Total</th>
             </tr>
@@ -238,6 +239,7 @@
                         @endif
                     </td>
                     <td class="text-center">{{ number_format($item->quantity, 2) }}</td>
+                    <td class="text-center">{{ $item->unit ?? 'pcs' }}</td>
                     <td class="text-right">${{ number_format($item->unit_price, 2) }}</td>
                     <td class="text-right">${{ number_format($item->total_price, 2) }}</td>
                 </tr>

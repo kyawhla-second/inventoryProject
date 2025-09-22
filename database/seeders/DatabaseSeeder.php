@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             OrderSeeder::class,
             RecipeSeeder::class,
             StaffSeeder::class,
+            ProductRawMaterialSeeder::class,
         ]);
     }
 }

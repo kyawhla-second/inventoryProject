@@ -103,7 +103,9 @@ class OrderController extends Controller
      */
     public function edit(Order $order)
     {
-        return view('orders.edit', compact('order'));
+        $order->load(['items.product']);
+        $products = \App\Models\Product::all();
+        return view('orders.edit', compact('order', 'products'));
     }
 
     /**
@@ -113,12 +115,82 @@ class OrderController extends Controller
     {
         $request->validate([
             'status' => 'required|string|in:pending,processing,shipped,completed,cancelled',
+            'items' => 'sometimes|string',
+            'notes' => 'nullable|string',
         ]);
 
-        $order->update($request->only('status'));
+        \Log::info('Update order request:', $request->all());
 
-        return redirect()->route('orders.index')
-            ->with('success', 'Order status updated successfully.');
+        return \DB::transaction(function () use ($request, $order) {
+            $items = [];
+            if (!empty($request->items)) {
+                $items = json_decode($request->items, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    \Log::error('Failed to decode items JSON:', [
+                        'error' => json_last_error_msg(),
+                        'items' => $request->items
+                    ]);
+                    throw new \Exception('Invalid items data');
+                }
+            }
+            
+            $existingItemIds = [];
+            $totalAmount = 0;
+            \Log::info('Processing items:', ['items' => $items]);
+
+            // Update or create order items
+            foreach ($items as $itemData) {
+                $itemId = $itemData['id'] ?? null;
+                $quantity = (int)($itemData['quantity'] ?? 1);
+                $price = (float)($itemData['price'] ?? 0);
+                
+                // Calculate item total
+                $totalAmount += $quantity * $price;
+
+                if (str_starts_with($itemId, 'new-')) {
+                    // New item
+                    $order->items()->create([
+                        'product_id' => $itemData['product_id'],
+                        'quantity' => $quantity,
+                        'price' => $price,
+                    ]);
+                } else {
+                    // Existing item
+                    $item = $order->items()->find($itemId);
+                    if ($item) {
+                        $originalQuantity = $item->quantity;
+                        $item->update([
+                            'quantity' => $quantity,
+                            'price' => $price,
+                        ]);
+                        $existingItemIds[] = $itemId;
+
+                        // Update product stock if quantity changed
+                        if ($item->product && $originalQuantity != $quantity) {
+                            $quantityDiff = $originalQuantity - $quantity;
+                            if ($quantityDiff > 0) {
+                                $item->product->increment('quantity', $quantityDiff);
+                            } else {
+                                $item->product->decrement('quantity', abs($quantityDiff));
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Remove items not in the request
+            $order->items()->whereNotIn('id', $existingItemIds)->delete();
+
+            // Update order totals and notes
+            $order->update([
+                'status' => $request->status,
+                'total_amount' => $totalAmount,
+                'notes' => $request->notes,
+            ]);
+
+            return redirect()->route('orders.show', $order)
+                ->with('success', 'Order updated successfully.');
+        });
     }
 
     /**

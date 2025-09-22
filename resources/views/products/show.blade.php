@@ -7,6 +7,12 @@
                 <h2>{{__('Show Product')}}</h2>
             </div>
             <div class="pull-right">
+                <a class="btn btn-success" href="{{ route('products.raw-materials.index', $product) }}">
+                    <i class="fas fa-industry"></i> {{__('Raw Materials')}}
+                </a>
+                <a class="btn btn-warning" href="{{ route('products.edit', $product) }}">
+                    <i class="fas fa-edit"></i> {{__('Edit')}}
+                </a>
                 <a class="btn btn-primary" href="{{ route('products.index') }}"> {{__('Back')}}</a>
             </div>
         </div>

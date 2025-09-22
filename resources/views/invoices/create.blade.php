@@ -118,7 +118,7 @@
                                 @foreach($sale->items as $index => $saleItem)
                                     <div class="item-row border rounded p-3 mb-3">
                                         <div class="row">
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label">{{ __('Product') }}</label>
                                                 <select class="form-control" name="items[{{ $index }}][product_id]" onchange="updateDescription(this, {{ $index }})">
                                                     <option value="">{{ __('Select Product') }}</option>
@@ -126,13 +126,14 @@
                                                         <option value="{{ $product->id }}" 
                                                             data-name="{{ $product->name }}" 
                                                             data-price="{{ $product->price }}"
+                                                            data-unit="{{ $product->unit }}"
                                                             {{ $saleItem->product_id == $product->id ? 'selected' : '' }}>
                                                             {{ $product->name }} ({{ $product->barcode ?? 'N/A' }})
                                                         </option>
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label">{{ __('Description') }} *</label>
                                                 <input type="text" class="form-control" name="items[{{ $index }}][description]" 
                                                        value="{{ $saleItem->product->name }}" required>
@@ -141,6 +142,11 @@
                                                 <label class="form-label">{{ __('Quantity') }} *</label>
                                                 <input type="number" step="0.01" class="form-control" name="items[{{ $index }}][quantity]" 
                                                        value="{{ $saleItem->quantity }}" min="0.01" required onchange="calculateItemTotal({{ $index }})">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">{{ __('Unit') }}</label>
+                                                <input type="text" class="form-control" name="items[{{ $index }}][unit]" 
+                                                       value="{{ $saleItem->product->unit ?? 'pcs' }}" readonly>
                                             </div>
                                             <div class="col-md-2">
                                                 <label class="form-label">{{ __('Unit Price') }} *</label>
@@ -166,20 +172,21 @@
                             @else
                                 <div class="item-row border rounded p-3 mb-3">
                                     <div class="row">
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">{{ __('Product') }}</label>
                                             <select class="form-control" name="items[0][product_id]" onchange="updateDescription(this, 0)">
                                                 <option value="">{{ __('Select Product') }}</option>
                                                 @foreach($products as $product)
                                                     <option value="{{ $product->id }}" 
                                                         data-name="{{ $product->name }}" 
-                                                        data-price="{{ $product->price }}">
+                                                        data-price="{{ $product->price }}"
+                                                        data-unit="{{ $product->unit }}">
                                                         {{ $product->name }} ({{ $product->sku ?? $product->barcode ?? 'N/A' }})
                                                     </option>
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">{{ __('Description') }} *</label>
                                             <input type="text" class="form-control" name="items[0][description]" required>
                                         </div>
@@ -187,6 +194,11 @@
                                             <label class="form-label">{{ __('Quantity') }} *</label>
                                             <input type="number" step="0.01" class="form-control" name="items[0][quantity]" 
                                                    value="1.00" min="0.01" required onchange="calculateItemTotal(0)">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">{{ __('Unit') }}</label>
+                                            <input type="text" class="form-control" name="items[0][unit]" 
+                                                   value="pcs" readonly>
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label">{{ __('Unit Price') }} *</label>
@@ -258,20 +270,21 @@ function addItem() {
     const itemHtml = `
         <div class="item-row border rounded p-3 mb-3">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">{{ __('Product') }}</label>
                     <select class="form-control" name="items[${itemIndex}][product_id]" onchange="updateDescription(this, ${itemIndex})">
                         <option value="">{{ __('Select Product') }}</option>
                         @foreach($products as $product)
                             <option value="{{ $product->id }}" 
                                 data-name="{{ $product->name }}" 
-                                data-price="{{ $product->price }}">
+                                data-price="{{ $product->price }}"
+                                data-unit="{{ $product->unit }}">
                                 {{ $product->name }} ({{ $product->barcode ?? 'N/A' }})
                             </option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">{{ __('Description') }} *</label>
                     <input type="text" class="form-control" name="items[${itemIndex}][description]" required>
                 </div>
@@ -279,6 +292,11 @@ function addItem() {
                     <label class="form-label">{{ __('Quantity') }} *</label>
                     <input type="number" step="0.01" class="form-control" name="items[${itemIndex}][quantity]" 
                            value="1.00" min="0.01" required onchange="calculateItemTotal(${itemIndex})">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">{{ __('Unit') }}</label>
+                    <input type="text" class="form-control" name="items[${itemIndex}][unit]" 
+                           value="pcs" readonly>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">{{ __('Unit Price') }} *</label>
@@ -317,13 +335,16 @@ function updateDescription(select, index) {
     const option = select.options[select.selectedIndex];
     const descriptionInput = document.querySelector(`input[name="items[${index}][description]"]`);
     const priceInput = document.querySelector(`input[name="items[${index}][unit_price]"]`);
+    const unitInput = document.querySelector(`input[name="items[${index}][unit]"]`);
     
     if (option.value) {
         descriptionInput.value = option.dataset.name;
         priceInput.value = parseFloat(option.dataset.price).toFixed(2);
+        unitInput.value = option.dataset.unit || 'pcs';
     } else {
         descriptionInput.value = '';
         priceInput.value = '0.00';
+        unitInput.value = 'pcs';
     }
     
     calculateItemTotal(index);

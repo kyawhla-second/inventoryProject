@@ -48,4 +48,38 @@ class RawMaterial extends Model
             ->whereBetween('usage_date', [$startDate, $endDate])
             ->sum('total_cost');
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'product_raw_material')
+                    ->withPivot([
+                        'quantity_required',
+                        'unit',
+                        'cost_per_unit',
+                        'waste_percentage',
+                        'notes',
+                        'is_primary',
+                        'sequence_order'
+                    ])
+                    ->withTimestamps()
+                    ->orderBy('product_raw_material.sequence_order');
+    }
+
+    public function primaryProducts()
+    {
+        return $this->products()->wherePivot('is_primary', true);
+    }
+
+    public function getProductsUsingThis()
+    {
+        return $this->products->map(function ($product) {
+            return [
+                'product' => $product,
+                'quantity_required' => $product->pivot->quantity_required,
+                'unit' => $product->pivot->unit,
+                'is_primary' => $product->pivot->is_primary,
+                'waste_percentage' => $product->pivot->waste_percentage,
+            ];
+        });
+    }
 }

@@ -108,6 +108,68 @@
      - Email: staff@example.com
      - Password: password
 
+# How to Use This Inventory Project
+
+This inventory management system helps you track products, manage stock, and monitor business operations efficiently. Below are detailed instructions on how to use the system:
+
+## 1. Installation
+
+- Clone the repository:
+  ```bash
+  git clone https://github.com/kyawhla-commit/inventoryProject.git
+  cd inventoryProject
+  ```
+- Install dependencies:
+  ```bash
+  npm install
+  ```
+- Start the development server:
+  ```bash
+  npm run dev
+  ```
+  The app will be available at `http://localhost:3000`.
+
+## 2. User Authentication
+- Register a new account or log in with your credentials.
+- User roles (admin, manager, staff) may have different permissions.
+
+## 3. Dashboard Overview
+- After login, you will see a dashboard summarizing inventory status, product counts, and recent activities.
+
+## 4. Managing Products
+- Navigate to the **Products** section.
+- Add new products by providing details such as name, SKU, category, price, and quantity.
+- Edit or delete existing products as needed.
+
+## 5. Inventory Tracking
+- Go to the **Inventory** section.
+- View current stock levels for all products.
+- Update stock quantities when new items arrive or are sold.
+- Set low-stock alerts to avoid running out of products.
+
+## 6. Expense Management
+- Access the **Expenses** section to log and categorize business expenses.
+- View expense history and generate reports for financial analysis.
+
+## 7. User Management
+- In the **Users** section, admins can add, edit, or remove users.
+- Assign roles and permissions to control access to different features.
+
+## 8. Settings
+- Customize system preferences, such as currency, language, and notification settings.
+- Update your profile information.
+
+## 9. Reports & Analytics
+- Generate inventory, sales, and expense reports for business insights.
+- Export data as CSV or PDF for external use.
+
+## 10. Support
+- For help or troubleshooting, refer to the documentation or contact the project maintainer.
+
+---
+
+This guide covers the main features and usage of the inventory management system. For more details, explore each section in the app or check the source code for advanced customization.
+
 ## Contributing
 
 1. Fork the repository

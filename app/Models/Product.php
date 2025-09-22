@@ -47,4 +47,57 @@ class Product extends Model
     {
         return $this->hasMany(ProductionPlanItem::class);
     }
+
+    public function rawMaterials()
+    {
+        return $this->belongsToMany(RawMaterial::class, 'product_raw_material')
+                    ->withPivot([
+                        'quantity_required',
+                        'unit',
+                        'cost_per_unit',
+                        'waste_percentage',
+                        'notes',
+                        'is_primary',
+                        'sequence_order'
+                    ])
+                    ->withTimestamps()
+                    ->orderBy('product_raw_material.sequence_order');
+    }
+
+    public function primaryRawMaterials()
+    {
+        return $this->rawMaterials()->wherePivot('is_primary', true);
+    }
+
+    public function getTotalRawMaterialCost()
+    {
+        return $this->rawMaterials->sum(function ($rawMaterial) {
+            $costPerUnit = $rawMaterial->pivot->cost_per_unit ?? $rawMaterial->cost_per_unit;
+            $quantityWithWaste = $rawMaterial->pivot->quantity_required * (1 + ($rawMaterial->pivot->waste_percentage / 100));
+            return $quantityWithWaste * $costPerUnit;
+        });
+    }
+
+    public function calculateRequiredRawMaterials($productQuantity)
+    {
+        return $this->rawMaterials->map(function ($rawMaterial) use ($productQuantity) {
+            $requiredQuantity = $rawMaterial->pivot->quantity_required * $productQuantity;
+            $wasteQuantity = $requiredQuantity * ($rawMaterial->pivot->waste_percentage / 100);
+            $totalRequired = $requiredQuantity + $wasteQuantity;
+            $costPerUnit = $rawMaterial->pivot->cost_per_unit ?? $rawMaterial->cost_per_unit;
+            
+            return [
+                'raw_material_id' => $rawMaterial->id,
+                'raw_material' => $rawMaterial,
+                'required_quantity' => $requiredQuantity,
+                'waste_quantity' => $wasteQuantity,
+                'total_required' => $totalRequired,
+                'unit' => $rawMaterial->pivot->unit,
+                'cost_per_unit' => $costPerUnit,
+                'total_cost' => $totalRequired * $costPerUnit,
+                'is_primary' => $rawMaterial->pivot->is_primary,
+                'notes' => $rawMaterial->pivot->notes,
+            ];
+        });
+    }
 }

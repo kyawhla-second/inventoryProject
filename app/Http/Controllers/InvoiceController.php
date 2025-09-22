@@ -82,6 +82,7 @@ class InvoiceController extends Controller
             'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.description' => 'required|string|max:255',
             'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit' => 'nullable|string|max:50',
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
@@ -164,6 +165,7 @@ class InvoiceController extends Controller
             'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.description' => 'required|string|max:255',
             'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit' => 'nullable|string|max:50',
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 

@@ -522,14 +522,16 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // Debug output for chart data
         console.log('Chart debug', {
-            months: @json($months),
+            months: @json(collect($months)->map(fn($m)=>\Carbon\Carbon::createFromFormat('Y-m', $m)->format('M'))->values()),
             salesTotals: @json($salesTotals),
             purchaseTotals: @json($purchaseTotals),
             topProductLabels: @json($topProductLabels),
             topProductQuantities: @json($topProductQuantities),
         });
-        const months = @json($months->map(fn($m)=>\Carbon\Carbon::createFromFormat('Y-m', $m)->format('M'))->values());
+        // Use mapped months for chart labels
+        const months = @json(collect($months)->map(fn($m)=>\Carbon\Carbon::createFromFormat('Y-m', $m)->format('M'))->values());
         const salesData = @json($salesTotals);
         const purchaseData = @json($purchaseTotals);
 
