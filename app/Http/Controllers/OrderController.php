@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -51,7 +53,7 @@ class OrderController extends Controller
             'products.*.price'       => 'required|numeric|min:0',
         ]);
 
-        $order = \DB::transaction(function () use ($request) {
+        $order = DB::transaction(function () use ($request) {
             $totalAmount = 0;
             foreach ($request->products as $item) {
                 $totalAmount += $item['quantity'] * $item['price'];
@@ -94,7 +96,18 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        $order->load(['customer', 'items.product']);
+        $order->load(['customer', 'items.product', 'invoice', 'sales', 'purchases']);
+        // Convert date strings to Carbon instances for Blade formatting
+        if ($order->invoice) {
+            $order->invoice->invoice_date = \Carbon\Carbon::parse($order->invoice->invoice_date);
+            $order->invoice->due_date = \Carbon\Carbon::parse($order->invoice->due_date);
+        }
+        foreach ($order->sales as $sale) {
+            $sale->sale_date = \Carbon\Carbon::parse($sale->sale_date);
+        }
+        foreach ($order->purchases as $purchase) {
+            $purchase->purchase_date = \Carbon\Carbon::parse($purchase->purchase_date);
+        }
         return view('orders.show', compact('order'));
     }
 
@@ -103,6 +116,9 @@ class OrderController extends Controller
      */
     public function edit(Order $order)
     {
+        if ($order->status === 'completed') {
+            return redirect()->back()->with('error', 'Completed orders cannot be edited.');
+        }
         $order->load(['items.product']);
         $products = \App\Models\Product::all();
         return view('orders.edit', compact('order', 'products'));
@@ -119,14 +135,14 @@ class OrderController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        \Log::info('Update order request:', $request->all());
+        Log::info('Update order request:', $request->all());
 
-        return \DB::transaction(function () use ($request, $order) {
+        return DB::transaction(function () use ($request, $order) {
             $items = [];
             if (!empty($request->items)) {
                 $items = json_decode($request->items, true);
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    \Log::error('Failed to decode items JSON:', [
+                    Log::error('Failed to decode items JSON:', [
                         'error' => json_last_error_msg(),
                         'items' => $request->items
                     ]);
@@ -136,7 +152,7 @@ class OrderController extends Controller
             
             $existingItemIds = [];
             $totalAmount = 0;
-            \Log::info('Processing items:', ['items' => $items]);
+            Log::info('Processing items:', ['items' => $items]);
 
             // Update or create order items
             foreach ($items as $itemData) {

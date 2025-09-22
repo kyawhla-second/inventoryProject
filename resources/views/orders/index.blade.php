@@ -49,7 +49,9 @@
                             </td>
                             <td>
                                 <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-info">{{__('View')}}</a>
-                                <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-sm btn-primary">{{__('Edit')}}</a>
+                                @if($order->status !== 'completed')
+                                    <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-sm btn-primary">{{__('Edit')}}</a>
+                                @endif
                             </td>
                         </tr>
                     @empty
