@@ -1,617 +1,764 @@
 @extends('layouts.app')
 
 @push('styles')
-<style>
-    /* Month selector styling - Light mode (default) */
-    #monthSelector {
-        background: white !important;
-        border: 1px solid #ced4da !important;
-        color: #333 !important;
-    }
-    
-    #monthSelector:focus {
-        background: white !important;
-        border-color: #80bdff !important;
-        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25) !important;
-    }
-    
-    #monthSelector option {
-        background: white !important;
-        color: #333 !important;
-    }
-    
-    /* Label styling for light mode */
-    .monthly-overview-label {
-        color: #495057 !important;
-    }
-    
-    /* Dark mode detection and overrides */
-    @media (prefers-color-scheme: dark) {
+    <style>
+        /* Month selector styling - Light mode (default) */
         #monthSelector {
+            background: white !important;
+            border: 1px solid #ced4da !important;
+            color: #333 !important;
+        }
+
+        #monthSelector:focus {
+            background: white !important;
+            border-color: #80bdff !important;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+        }
+
+        #monthSelector option {
+            background: white !important;
+            color: #333 !important;
+        }
+
+        /* Label styling for light mode */
+        .monthly-overview-label {
+            color: #495057 !important;
+        }
+
+        /* Dark mode detection and overrides */
+        @media (prefers-color-scheme: dark) {
+            #monthSelector {
+                background: rgba(45, 55, 72, 0.9) !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                color: white !important;
+            }
+
+            #monthSelector:focus {
+                background: rgba(45, 55, 72, 1) !important;
+                border-color: rgba(255, 255, 255, 0.3) !important;
+                box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25) !important;
+            }
+
+            #monthSelector option {
+                background: #2d3748 !important;
+                color: white !important;
+            }
+
+            .monthly-overview-label {
+                color: white !important;
+            }
+        }
+
+        /* Additional fallback for body class detection */
+        body.dark-mode #monthSelector {
             background: rgba(45, 55, 72, 0.9) !important;
-            border: 1px solid rgba(255,255,255,0.2) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: white !important;
         }
-        
-        #monthSelector:focus {
-            background: rgba(45, 55, 72, 1) !important;
-            border-color: rgba(255,255,255,0.3) !important;
-            box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25) !important;
-        }
-        
-        #monthSelector option {
+
+        body.dark-mode #monthSelector option {
             background: #2d3748 !important;
             color: white !important;
         }
-        
-        .monthly-overview-label {
+
+        body.dark-mode .monthly-overview-label {
             color: white !important;
         }
-    }
-    
-    /* Additional fallback for body class detection */
-    body.dark-mode #monthSelector {
-        background: rgba(45, 55, 72, 0.9) !important;
-        border: 1px solid rgba(255,255,255,0.2) !important;
-        color: white !important;
-    }
-    
-    body.dark-mode #monthSelector option {
-        background: #2d3748 !important;
-        color: white !important;
-    }
-    
-    body.dark-mode .monthly-overview-label {
-        color: white !important;
-    }
-</style>
+    </style>
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">{{__('Dashboard')}}</h1>
-    </div>
-
-    <!-- Colorful Stats-->
-    <div class="row">
-
-        <!-- Total Products Card -->
-        <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                {{__('Total Products')}}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalProducts }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-box fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="container-fluid">
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">{{ __('Dashboard') }}</h1>
         </div>
 
-        <!-- Total Customers Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                {{__('Total Customers')}}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalCustomers }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Colorful Stats-->
+        <div class="row">
 
-        <!-- Total Suppliers Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                {{__('Total Suppliers')}}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalSuppliers }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-truck fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div
-
-        <!-- Total Orders Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-dark shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
-                                {{__('Total Orders')}}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalOrders }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Orders by Status Cards -->
-        @foreach (['pending','processing','shipped','completed','cancelled'] as $status)
-            <div class="col-xl-2 col-md-4 mb-4">
-                <div class="card border-left-{{ App\Models\Order::STATUS_BADGE_CLASSES[$status] ?? 'secondary' }} shadow h-100 py-2">
-                    <div class="card-body p-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">
-                            {{ ucfirst($status) }}
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $ordersByStatus[$status] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-        @endforeach
-
-    <!-- Monthly Financial Metrics Header -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 text-gray-800">{{__('Monthly Financial Overview')}}</h5>
-                <div class="d-flex align-items-center">
-                    <label for="monthSelector" class="form-label monthly-overview-label me-2 mb-0 text-sm">{{__('Select Month:')}}</label>
-                    <select id="monthSelector" class="form-select form-select-sm" style="width: auto;" onchange="updateFinancialMetrics()">
-                        @for($i = 0; $i < 12; $i++)
-                            @php
-                                $monthDate = now()->subMonths($i);
-                                $monthValue = $monthDate->format('Y-m');
-                                $monthLabel = $monthDate->format('F Y');
-                                $isSelected = $monthValue === (request('month') ?? now()->format('Y-m'));
-                            @endphp
-                            <option value="{{ $monthValue }}" {{ $isSelected ? 'selected' : '' }}>
-                                {{ $monthLabel }}
-                            </option>
-                        @endfor
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Monthly Financial Metrics Row -->
-    <div class="row">
-        <!-- Monthly Revenue Card -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                {{__('Monthly Revenue')}}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@money($monthlyRevenue ?? $currentMonthSales ?? 0)</div>
-                            <div class="text-xs text-muted mt-1">
-                                @php
-                                    $revenueChange = ($monthlyRevenueChange ?? 0);
-                                    $isPositive = $revenueChange >= 0;
-                                @endphp
-                                <i class="fas fa-arrow-{{ $isPositive ? 'up' : 'down' }} text-{{ $isPositive ? 'success' : 'danger' }}"></i>
-                                {{ $isPositive ? '+' : '' }}{{ number_format(abs($revenueChange), 1) }}% {{__('vs last month')}}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Monthly Expenses Card -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                {{__('Monthly Expenses')}}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@money($monthlyExpenses ?? 0)</div>
-                            <div class="text-xs text-muted mt-1">
-                                @php
-                                    $expenseChange = ($monthlyExpenseChange ?? 0);
-                                    $isPositive = $expenseChange <= 0; // For expenses, decrease is positive
-                                @endphp
-                                <i class="fas fa-arrow-{{ $expenseChange >= 0 ? 'up' : 'down' }} text-{{ $isPositive ? 'success' : 'danger' }}"></i>
-                                {{ $expenseChange >= 0 ? '+' : '' }}{{ number_format(abs($expenseChange), 1) }}% {{__('vs last month')}}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-receipt fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Monthly Net Profit Card -->
-        <div class="col-xl-4 col-md-6 mb-4">
+            <!-- Total Products Card -->
             @php
-                $monthlyProfit = ($monthlyNetProfit ?? (($monthlyRevenue ?? $currentMonthSales ?? 0) - ($monthlyExpenses ?? 0)));
-                $profitChange = ($monthlyProfitChange ?? 0);
+                // Dynamic color logic: green if > 100, yellow if 21-100, red if <= 20
+                // bg-primary
+                // bg-secondary
+                // bg-success
+                // bg-danger
+                // bg-warning
+                // bg-info
+                // bg-light
+                // bg-dark
+                // bg-white
+                $productBg = $totalProducts > 100 ? 'success' : ($totalProducts > 20 ? 'info' : 'danger');
             @endphp
-            <div class="card border-left-{{ $monthlyProfit >= 0 ? 'primary' : 'warning' }} shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-{{ $monthlyProfit >= 0 ? 'primary' : 'warning' }} text-uppercase mb-1">
-                                {{__('Monthly Net Profit')}}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                @money($monthlyProfit)
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2 bg-{{ $productBg }} bg-opacity-85">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
+                                    {{ __('Total Products') }}</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalProducts }}</div>
                             </div>
-                            <div class="text-xs text-muted mt-1">
-                                @if($monthlyProfit >= 0)
-                                    <i class="fas fa-arrow-{{ $profitChange >= 0 ? 'up' : 'down' }} text-{{ $profitChange >= 0 ? 'success' : 'warning' }}"></i>
-                                    {{ $profitChange >= 0 ? '+' : '' }}{{ number_format(abs($profitChange), 1) }}% {{__('vs last month')}}
-                                @else
-                                    <i class="fas fa-exclamation-triangle text-warning"></i>
-                                    {{__('Loss this month')}}
+                            <div class="col-auto">
+                                <i class="fas fa-box fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Customers Card -->
+            @php
+                // Dynamic color logic: green if > 100, blue if 21-100, red if <= 20
+                // bg-primary
+                // bg-secondary
+                // bg-success
+                // bg-danger
+                // bg-warning
+                // bg-info
+                // bg-light
+                // bg-dark
+                // bg-white
+                $customer = $totalCustomers > 100 ? 'success' : ($totalCustomers > 10 ? 'warning' : 'danger');
+            @endphp
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2 bg-{{ $customer }} ">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
+                                    {{ __('Total Customers') }}</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalCustomers }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-users fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Suppliers Card -->
+            @php
+                // Dynamic color logic: green if > 100, blue if 21-100, red if <= 20
+                $supplier = $totalSuppliers > 100 ? 'success' : ($totalSuppliers > 5 ? 'primary' : 'danger');
+                // bg-primary
+                // bg-secondary
+                // bg-success
+                // bg-danger
+                // bg-warning
+                // bg-info
+                // bg-light
+                // bg-dark
+                // bg-white
+            @endphp
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2 bg-{{ $supplier }} bg-opacity-85">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
+                                    {{ __('Total Suppliers') }}</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalSuppliers }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-truck fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Orders Card -->
+                @php
+                    // Dynamic color logic: green if > 100, blue if 21-100, red if <= 20
+                    $order = $totalOrders > 100 ? 'success' : ($totalOrders > 5 ? 'secondary' : 'danger');
+                    // bg-primary
+                    // bg-secondary
+                    // bg-success
+                    // bg-danger
+                    // bg-warning
+                    // bg-info
+                    // bg-light
+                    // bg-dark
+                    // bg-white
+                @endphp
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-dark shadow h-100 py-2 bg-{{ $order }}">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
+                                    {{ __('Total Orders') }}</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalOrders }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders by Status Cards -->
+            @foreach (['pending', 'processing', 'shipped', 'completed', 'cancelled'] as $status)
+                <div class="col-xl-2 col-md-4 mb-4 ">
+                    <div
+                        class="card shadow h-100 py-2 bg-{{ App\Models\Order::STATUS_BADGE_CLASSES[$status] ?? 'secondary' }} bg-opacity-50">
+                        <div class="card-body p-2 ">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                {{ ucfirst($status) }}
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $ordersByStatus[$status] ?? 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+
+            <!-- Monthly Financial Metrics Header -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-gray-800">{{ __('Monthly Financial Overview') }}</h5>
+                        <div class="d-flex align-items-center ">
+                            <label for="monthSelector"
+                                class="form-label monthly-overview-label me-2 mb-0 text-sm">{{ __('Select Month:') }}</label>
+                            <select id="monthSelector" class="form-select form-select-sm" style="width: auto;"
+                                onchange="updateFinancialMetrics()">
+                                @for ($i = 0; $i < 12; $i++)
+                                    @php
+                                        $monthDate = now()->subMonths($i);
+                                        $monthValue = $monthDate->format('Y-m');
+                                        $monthLabel = $monthDate->format('F Y');
+                                        $isSelected = $monthValue === (request('month') ?? now()->format('Y-m'));
+                                    @endphp
+                                    <option value="{{ $monthValue }}" {{ $isSelected ? 'selected' : '' }}>
+                                        {{ $monthLabel }}
+                                    </option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Financial Metrics Row -->
+            <div class="row">
+                <!-- Monthly Revenue Card -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div
+                        class="card border-left-success shadow h-100 py-2 bg-{{ ($monthlyRevenue ?? ($currentMonthSales ?? 0)) >= 0 ? 'info' : 'warning' }} }} bg-opacity-50 ">
+                        <div class="card-body">
+
+                            <div class="row no-gutters align-items-center ">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        {{ __('Monthly Revenue') }}</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@money($monthlyRevenue ?? ($currentMonthSales ?? 0))</div>
+                                    <div class="text-xs text-muted mt-1">
+                                        @php
+                                            $revenueChange = $monthlyRevenueChange ?? 0;
+                                            $isPositive = $revenueChange >= 0;
+                                        @endphp
+                                        <i
+                                            class="fas fa-arrow-{{ $isPositive ? 'up' : 'down' }} text-{{ $isPositive ? 'success' : 'danger' }}"></i>
+                                        {{ $isPositive ? '+' : '' }}{{ number_format(abs($revenueChange), 1) }}%
+                                        {{ __('vs last month') }}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Expenses Card -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div
+                        class="card border-left-danger shadow h-100 py-2 bg-{{ ($monthlyExpenses ?? 0) <= 1000 ? 'primary' : 'danger' }} bg-opacity-50">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                        {{ __('Monthly Expenses') }}</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@money($monthlyExpenses ?? 0)</div>
+                                    <div class="text-xs text-muted mt-1">
+                                        @php
+                                            $expenseChange = $monthlyExpenseChange ?? 0;
+                                            $isPositive = $expenseChange <= 0; // For expenses, decrease is positive
+                                        @endphp
+                                        <i
+                                            class="fas fa-arrow-{{ $expenseChange >= 0 ? 'up' : 'down' }} text-{{ $isPositive ? 'success' : 'danger' }}"></i>
+                                        {{ $expenseChange >= 0 ? '+' : '' }}{{ number_format(abs($expenseChange), 1) }}%
+                                        {{ __('vs last month') }}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-receipt fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Net Profit Card -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    @php
+                        $monthlyProfit =
+                            $monthlyNetProfit ??
+                            ($monthlyRevenue ?? ($currentMonthSales ?? 0)) - ($monthlyExpenses ?? 0);
+                        $profitChange = $monthlyProfitChange ?? 0;
+                    @endphp
+                    <div class="card  shadow h-100 py-2 bg-{{ $monthlyProfit >= 0 ? 'success' : 'danger' }} ">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div
+                                        class="text-xs font-weight-bold text-{{ $monthlyProfit >= 0 ? 'light' : 'dark' }} text-uppercase mb-1">
+                                        {{ __('Monthly Net Profit') }}</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        @money($monthlyProfit)
+                                    </div>
+                                    <div class="text-xs text-muted mt-1">
+                                        @if ($monthlyProfit >= 0)
+                                            <i
+                                                class="fas fa-arrow-{{ $profitChange >= 0 ? 'up' : 'down' }} text-{{ $profitChange >= 0 ? 'success' : 'warning' }}"></i>
+                                            {{ $profitChange >= 0 ? '+' : '' }}{{ number_format(abs($profitChange), 1) }}%
+                                            {{ __('vs last month') }}
+                                        @else
+                                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                                            {{ __('Loss this month') }}
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i
+                                        class="fas fa-{{ $monthlyProfit >= 0 ? 'trophy' : 'exclamation-triangle' }} fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Summary Row -->
+            @php
+                // Dynamic color logic for summary card: green for profit > 0, red for < 0, yellow for exactly 0
+                $summaryBg = $monthlyProfit > 0 ? 'success' : ($monthlyProfit < 0 ? 'danger' : 'warning');
+            @endphp
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-left-info shadow py-2 bg-{{ $summaryBg }} bg-opacity-75">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col">
+                                    <div class="text-xs font-weight-bold text-white text-uppercase mb-1">
+                                        {{ __('Monthly Summary') }} -
+                                        {{ now()->parse(request('month', now()->format('Y-m')))->format('F Y') }}
+                                    </div>
+                                    <div class="row text-sm">
+                                        <div class="col-md-3">
+                                            <strong>{{ __('Revenue') }}:</strong> @money($monthlyRevenue ?? ($currentMonthSales ?? 0))
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>{{ __('Expenses') }}:</strong> @money($monthlyExpenses ?? 0)
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>{{ __('Net Profit') }}:</strong>
+                                            <span class="text-{{ $monthlyProfit >= 0 ? 'success' : 'white' }}">
+                                                @money($monthlyProfit)
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>{{ __('Profit Margin') }}:</strong>
+                                            @php
+                                                $profitMargin =
+                                                    ($monthlyRevenue ?? ($currentMonthSales ?? 0)) > 0
+                                                        ? ($monthlyProfit /
+                                                                ($monthlyRevenue ?? ($currentMonthSales ?? 1))) *
+                                                            100
+                                                        : 0;
+                                                        
+                                            @endphp
+                                            {{-- text-primary
+                                                    text-secondary
+                                                    text-success
+                                                    text-danger
+                                                    text-warning
+                                                    text-info
+                                                    text-light
+                                                    text-dark
+                                                    text-white --}}
+                                            <span class=" text-{{ $profitMargin >= 0 ? 'white' : 'white' }}">
+                                                {{ number_format($profitMargin, 1) }}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Row -->
+            <div class="row">
+                <!-- Recent Sales -->
+                <div class="col-xl-8 col-lg-7">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">{{ __('Recent Sales') }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ __('ID') }}</th>
+                                            <th>{{ __('Customer') }}</th>
+                                            <th>{{ __('Date') }}</th>
+                                            <th>{{ __('Total') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($recentSales as $sale)
+                                            <tr>
+                                                <td><a
+                                                        href="{{ route('sales.show', $sale->id) }}">#{{ $sale->id }}</a>
+                                                </td>
+                                                <td>{{ $sale->customer->name ?? 'N/A' }}</td>
+                                                <td>{{ $sale->sale_date }}</td>
+                                                <td>@money($sale->total_amount)</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="text-center">No recent sales found.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Low Stock Products -->
+                <div class="col-xl-4 col-lg-5">
+                    <div class="card shadow mb-4">
+                        <!-- Card Header -->
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">{{ __('Low Stock Products') }}</h6>
+                        </div>
+                        <!-- Card Body -->
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ __('Product') }}</th>
+                                            <th>{{ __('Stock') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($lowStockProducts as $product)
+                                            <tr>
+                                                <td><a
+                                                        href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a>
+                                                </td>
+                                                <td><span class="badge bg-danger">{{ $product->quantity }}
+                                                        {{ $product->unit }}</span></td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="2" class="text-center">
+                                                    {{ __('No products are low on stock') }}</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (auth()->user()->role == 'admin')
+                        <!-- Monthly Sales Goal -->
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">{{ __('Monthly Sales Goal') }}</h6>
+                            </div>
+                            <div class="card-body">
+                                <h4 class="small font-weight-bold">
+                                    {{ __('Sales Progress') }}
+                                    <span class="float-end">@money($currentMonthSales) / @money($monthlySalesGoal)</span>
+                                </h4>
+                                <div class="progress mb-3">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                        style="width: {{ $salesProgressPercentage }}%"
+                                        aria-valuenow="{{ $salesProgressPercentage }}" aria-valuemin="0"
+                                        aria-valuemax="100"></div>
+                                </div>
+                                <div class="text-center mb-2">
+                                    <small>{{ number_format($salesProgressPercentage, 2) }}% of your monthly goal
+                                        reached.</small>
+                                </div>
+                                <form action="{{ route('dashboard.goal') }}" method="POST" class="d-flex">
+                                    @csrf
+                                    <input type="number" step="0.01" name="monthly_sales_goal"
+                                        class="form-control form-control-sm me-2" placeholder="New goal" required>
+                                    <button type="submit" class="btn btn-sm btn-primary">{{ __('Update') }}</button>
+                                </form>
+                                @if (session('success'))
+                                    <div class="alert alert-success mt-2 p-1 text-center">{{ session('success') }}</div>
                                 @endif
                             </div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-{{ $monthlyProfit >= 0 ? 'trophy' : 'exclamation-triangle' }} fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+            @endif
 
-    <!-- Monthly Summary Row -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-left-info shadow py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                {{__('Monthly Summary')}} - {{ now()->parse(request('month', now()->format('Y-m')))->format('F Y') }}
+            <!-- Low Stock Raw Materials -->
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-danger">{{ __('Low Stock Raw Materials') }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-nowrap">{{ __('Name') }}</th>
+                                            <th class="text-nowrap">{{ __('Current Quantity') }}</th>
+                                            <th class="text-nowrap">{{ __('Minimum Level') }}</th>
+                                            <th class="text-nowrap">{{ __('Unit') }}</th>
+                                            <th class="text-nowrap">{{ __('Supplier') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($lowStockRawMaterials as $material)
+                                            <tr>
+                                                <td class="text-nowrap"><a
+                                                        href="{{ route('raw-materials.show', $material->id) }}">{{ $material->name }}</a>
+                                                </td>
+                                                <td class="text-nowrap"><span
+                                                        class="badge bg-danger">{{ $material->quantity }}</span></td>
+                                                <td class="text-nowrap">{{ $material->minimum_stock_level }}</td>
+                                                <td class="text-nowrap">{{ $material->unit }}</td>
+                                                <td class="text-nowrap">{{ $material->supplier->name ?? 'N/A' }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="5" class="text-center">
+                                                    {{ __('No raw materials are low on stock.') }}</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
                             </div>
-                            <div class="row text-sm">
-                                <div class="col-md-3">
-                                    <strong>{{__('Revenue')}}:</strong> @money($monthlyRevenue ?? $currentMonthSales ?? 0)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Monthly Sales Goal Row -->
+        <div class="row mb-4 d-none">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    {{ __('Monthly Sales Goal') }}</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    ${{ number_format($monthlySalesGoal, 2) }}</div>
+                                <div class="progress mt-2">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                        style="width: {{ $salesProgressPercentage }}%"
+                                        aria-valuenow="{{ $salesProgressPercentage }}" aria-valuemin="0"
+                                        aria-valuemax="100"></div>
                                 </div>
-                                <div class="col-md-3">
-                                    <strong>{{__('Expenses')}}:</strong> @money($monthlyExpenses ?? 0)
-                                </div>
-                                <div class="col-md-3">
-                                    <strong>{{__('Net Profit')}}:</strong> 
-                                    <span class="text-{{ $monthlyProfit >= 0 ? 'success' : 'danger' }}">
-                                        @money($monthlyProfit)
-                                    </span>
-                                </div>
-                                <div class="col-md-3">
-                                    <strong>{{__('Profit Margin')}}:</strong> 
-                                    @php
-                                        $profitMargin = ($monthlyRevenue ?? $currentMonthSales ?? 0) > 0 
-                                            ? ($monthlyProfit / ($monthlyRevenue ?? $currentMonthSales ?? 1)) * 100 
-                                            : 0;
-                                    @endphp
-                                    <span class="text-{{ $profitMargin >= 0 ? 'success' : 'danger' }}">
-                                        {{ number_format($profitMargin, 1) }}%
-                                    </span>
-                                </div>
+                                <small>{{ number_format($salesProgressPercentage, 1) }}% achieved
+                                    (${{ number_format($currentMonthSales, 2) }})</small>
+                                <form action="{{ route('dashboard.goal') }}" method="POST" class="mt-2 d-flex">
+                                    @csrf
+                                    <input type="number" step="0.01" name="monthly_sales_goal"
+                                        class="form-control form-control-sm me-2" placeholder="New goal" required>
+                                    <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                </form>
+                                @if (session('success'))
+                                    <div class="alert alert-success mt-1 p-1 text-center">{{ session('success') }}</div>
+                                @endif
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-bullseye fa-2x text-gray-300"></i>
                             </div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Content Row -->
-    <div class="row">
-        <!-- Recent Sales -->
-        <div class="col-xl-8 col-lg-7">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">{{__('Recent Sales')}}</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th>{{__('ID')}}</th>
-                                    <th>{{__('Customer')}}</th>
-                                    <th>{{__('Date')}}</th>
-                                    <th>{{__('Total')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($recentSales as $sale)
-                                    <tr>
-                                        <td><a href="{{ route('sales.show', $sale->id) }}">#{{ $sale->id }}</a></td>
-                                        <td>{{ $sale->customer->name ?? 'N/A' }}</td>
-                                        <td>{{ $sale->sale_date }}</td>
-                                        <td>@money($sale->total_amount)</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center">No recent sales found.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Low Stock Products -->
-        <div class="col-xl-4 col-lg-5">
-            <div class="card shadow mb-4">
-                <!-- Card Header -->
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">{{__('Low Stock Products')}}</h6>
-                </div>
-                <!-- Card Body -->
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>{{__('Product')}}</th>
-                                    <th>{{__('Stock')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($lowStockProducts as $product)
-                                    <tr>
-                                        <td><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></td>
-                                        <td><span class="badge bg-danger">{{ $product->quantity }} {{ $product->unit }}</span></td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="2" class="text-center">{{__('No products are low on stock')}}</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+        <!-- Charts Row -->
+        <div class="row mt-4">
+            <div class="col-lg-8 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">{{ __('Monthly Sales vs Purchases (Last 12 Months)') }}</div>
+                    <div class="card-body">
+                        <canvas id="salesPurchasesBarChart" height="120"></canvas>
                     </div>
                 </div>
             </div>
-
-            @if(auth()->user()->role == 'admin')
-            <!-- Monthly Sales Goal -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">{{__('Monthly Sales Goal')}}</h6>
-                </div>
-                <div class="card-body">
-                    <h4 class="small font-weight-bold">
-                        {{__('Sales Progress')}}
-                        <span class="float-end">@money($currentMonthSales) / @money($monthlySalesGoal)</span>
-                    </h4>
-                    <div class="progress mb-3">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $salesProgressPercentage }}%" aria-valuenow="{{ $salesProgressPercentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        {{ __('Top Selling Products') }}
+                        <span class="text-xs text-muted ms-2">
+                            ({{ now()->parse(request('month', now()->format('Y-m')))->format('F Y') }})
+                        </span>
                     </div>
-                    <div class="text-center mb-2">
-                        <small>{{ number_format($salesProgressPercentage, 2) }}% of your monthly goal reached.</small>
-                    </div>
-                    <form action="{{ route('dashboard.goal') }}" method="POST" class="d-flex">
-                        @csrf
-                        <input type="number" step="0.01" name="monthly_sales_goal" class="form-control form-control-sm me-2" placeholder="New goal" required>
-                        <button type="submit" class="btn btn-sm btn-primary">{{__('Update')}}</button>
-                    </form>
-                    @if(session('success'))
-                        <div class="alert alert-success mt-2 p-1 text-center">{{ session('success') }}</div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-        @endif
-
-    <!-- Low Stock Raw Materials -->
-    <div class="row">
-        <div class="col-xl-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-danger">{{__('Low Stock Raw Materials')}}</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th class="text-nowrap">{{__('Name')}}</th>
-                                    <th class="text-nowrap">{{__('Current Quantity')}}</th>
-                                    <th class="text-nowrap">{{__('Minimum Level')}}</th>
-                                    <th class="text-nowrap">{{__('Unit')}}</th>
-                                    <th class="text-nowrap">{{__('Supplier')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($lowStockRawMaterials as $material)
-                                    <tr>
-                                        <td class="text-nowrap"><a href="{{ route('raw-materials.show', $material->id) }}">{{ $material->name }}</a></td>
-                                        <td class="text-nowrap"><span class="badge bg-danger">{{ $material->quantity }}</span></td>
-                                        <td class="text-nowrap">{{ $material->minimum_stock_level }}</td>
-                                        <td class="text-nowrap">{{ $material->unit }}</td>
-                                        <td class="text-nowrap">{{ $material->supplier->name ?? 'N/A' }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center">{{__('No raw materials are low on stock.')}}</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                    <div class="card-body">
+                        <canvas id="topProductsBarChart" height="120"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
-    <!-- Monthly Sales Goal Row -->
-    <div class="row mb-4 d-none">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{{__('Monthly Sales Goal')}}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ number_format($monthlySalesGoal, 2) }}</div>
-                            <div class="progress mt-2">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $salesProgressPercentage }}%" aria-valuenow="{{ $salesProgressPercentage }}" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <small>{{ number_format($salesProgressPercentage, 1) }}% achieved (${{ number_format($currentMonthSales,2) }})</small>
-                            <form action="{{ route('dashboard.goal') }}" method="POST" class="mt-2 d-flex">
-                                @csrf
-                                <input type="number" step="0.01" name="monthly_sales_goal" class="form-control form-control-sm me-2" placeholder="New goal" required>
-                                <button type="submit" class="btn btn-sm btn-primary">Update</button>
-                            </form>
-                            @if(session('success'))
-                                <div class="alert alert-success mt-1 p-1 text-center">{{ session('success') }}</div>
-                            @endif
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-bullseye fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @endsection
 
-    <!-- Charts Row -->
-    <div class="row mt-4">
-        <div class="col-lg-8 mb-4">
-            <div class="card shadow">
-                <div class="card-header">{{__('Monthly Sales vs Purchases (Last 12 Months)')}}</div>
-                <div class="card-body">
-                    <canvas id="salesPurchasesChart" height="120"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow">
-                <div class="card-header">{{__('Top Selling Products')}}</div>
-                <div class="card-body">
-                    <canvas id="topProductsChart" height="120"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection
-
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Debug output for chart data
-        console.log('Chart debug', {
-            months: @json(collect($months)->map(fn($m)=>\Carbon\Carbon::createFromFormat('Y-m', $m)->format('M'))->values()),
-            salesTotals: @json($salesTotals),
-            purchaseTotals: @json($purchaseTotals),
-            topProductLabels: @json($topProductLabels),
-            topProductQuantities: @json($topProductQuantities),
-        });
-        // Use mapped months for chart labels
-        const months = @json(collect($months)->map(fn($m)=>\Carbon\Carbon::createFromFormat('Y-m', $m)->format('M'))->values());
-        const salesData = @json($salesTotals);
-        const purchaseData = @json($purchaseTotals);
-
-        const ctxSP = document.getElementById('salesPurchasesChart').getContext('2d');
-        new Chart(ctxSP, {
-            type: 'line',
-            data: {
-                labels: months,
-                datasets: [
-                    {
-                        label: 'Sales',
-                        data: salesData,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59,130,246,0.2)',
-                        tension: 0.3,
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const months = @json(collect($months)->map(fn($m) => \Carbon\Carbon::createFromFormat('Y-m', $m)->format('M'))->values());
+                const salesData = @json($salesTotals);
+                const purchaseData = @json($purchaseTotals);
+                const ctxBar = document.getElementById('salesPurchasesBarChart').getContext('2d');
+                new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                                label: 'Sales',
+                                data: salesData,
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 6,
+                                barPercentage: 0.6,
+                                categoryPercentage: 0.5,
+                            },
+                            {
+                                label: 'Purchases',
+                                data: purchaseData,
+                                backgroundColor: '#eab308',
+                                borderRadius: 6,
+                                barPercentage: 0.6,
+                                categoryPercentage: 0.5,
+                            }
+                        ]
                     },
-                    {
-                        label: 'Purchases',
-                        data: purchaseData,
-                        borderColor: '#eab308',
-                        backgroundColor: 'rgba(234,179,8,0.2)',
-                        tension: 0.3,
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true
+                            },
+                            tooltip: {
+                                enabled: true
+                            }
+                        },
+                        scales: {
+                            x: {
+                                stacked: true,
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                stacked: true,
+                                grid: {
+                                    color: '#e5e7eb'
+                                }
+                            }
+                        }
                     }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true }
-                }
+                });
+
+                const topLabels = @json($topProductLabels);
+                const topQty = @json($topProductQuantities);
+                const ctxTopBar = document.getElementById('topProductsBarChart').getContext('2d');
+                new Chart(ctxTopBar, {
+                    type: 'bar',
+                    data: {
+                        labels: topLabels,
+                        datasets: [{
+                            label: 'Quantity Sold',
+                            data: topQty,
+                            backgroundColor: [
+                                '#3b82f6', '#10b981', '#eab308', '#f59e42', '#ef4444'
+                            ],
+                            borderRadius: 6,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.6,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                enabled: true
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#e5e7eb'
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Monthly Financial Metrics Update Function
+            function updateFinancialMetrics() {
+                const monthSelector = document.getElementById('monthSelector');
+                const selectedMonth = monthSelector.value;
+
+                // Add loading state
+                monthSelector.disabled = true;
+
+                // Create URL with month parameter
+                const url = new URL(window.location.href);
+                url.searchParams.set('month', selectedMonth);
+
+                // Redirect to update the dashboard with selected month
+                window.location.href = url.toString();
             }
-        });
 
-        const topLabels = @json($topProductLabels);
-        const topQty = @json($topProductQuantities);
-        const ctxTop = document.getElementById('topProductsChart').getContext('2d');
-        new Chart(ctxTop, {
-            type: 'bar',
-            data: {
-                labels: topLabels,
-                datasets: [{
-                    label: 'Quantity Sold',
-                    data: topQty,
-                    backgroundColor: '#10b981',
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true }
+            // Initialize month selector on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                const monthSelector = document.getElementById('monthSelector');
+                if (monthSelector) {
+                    // Set the current month from URL parameter or default to current month
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const currentMonth = urlParams.get('month') || new Date().toISOString().slice(0, 7);
+                    monthSelector.value = currentMonth;
                 }
-            }
-        });
-    });
-
-    // Monthly Financial Metrics Update Function
-    function updateFinancialMetrics() {
-        const monthSelector = document.getElementById('monthSelector');
-        const selectedMonth = monthSelector.value;
-        
-        // Add loading state
-        monthSelector.disabled = true;
-        
-        // Create URL with month parameter
-        const url = new URL(window.location.href);
-        url.searchParams.set('month', selectedMonth);
-        
-        // Redirect to update the dashboard with selected month
-        window.location.href = url.toString();
-    }
-
-    // Initialize month selector on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        const monthSelector = document.getElementById('monthSelector');
-        if (monthSelector) {
-            // Set the current month from URL parameter or default to current month
-            const urlParams = new URLSearchParams(window.location.search);
-            const currentMonth = urlParams.get('month') || new Date().toISOString().slice(0, 7);
-            monthSelector.value = currentMonth;
-        }
-    });
-</script>
-@endpush
+            });
+        </script>
+    @endpush
