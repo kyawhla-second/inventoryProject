@@ -20,6 +20,7 @@ use App\Http\Controllers\ProductionPlanController;
 use App\Http\Controllers\ProductionReportController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\ProductRawMaterialController;
+use Illuminate\Support\Facades\Auth;
 
 Auth::routes();
 
