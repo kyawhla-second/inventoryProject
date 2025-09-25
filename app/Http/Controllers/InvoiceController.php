@@ -219,9 +219,9 @@ class InvoiceController extends Controller
     public function generatePdf(Invoice $invoice)
     {
         $invoice->load(['customer', 'items.product', 'creator']);
-        
+
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
-        
+
         return $pdf->download('invoice-' . $invoice->invoice_number . '.pdf');
     }
 
@@ -231,12 +231,12 @@ class InvoiceController extends Controller
     public function print(Invoice $invoice)
     {
         $invoice->load(['customer', 'items.product', 'creator']);
-        
+
         // Mark as printed
         $invoice->markAsPrinted();
-        
+
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
-        
+
         return $pdf->stream('invoice-' . $invoice->invoice_number . '.pdf');
     }
 
@@ -246,28 +246,28 @@ class InvoiceController extends Controller
     public function sendToPrinter(Invoice $invoice, Request $request)
     {
         $invoice->load(['customer', 'items.product', 'creator']);
-        
+
         // Generate PDF
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
         $pdfContent = $pdf->output();
-        
+
         // Save temporary PDF file
         $tempPath = storage_path('app/temp/invoice-' . $invoice->invoice_number . '.pdf');
-        
+
         // Ensure temp directory exists
         if (!file_exists(dirname($tempPath))) {
             mkdir(dirname($tempPath), 0755, true);
         }
-        
+
         file_put_contents($tempPath, $pdfContent);
-        
+
         // Mark as printed
         $invoice->markAsPrinted();
-        
+
         // For Windows, use the default printer
         if (PHP_OS_FAMILY === 'Windows') {
             $printerName = $request->get('printer_name', 'default');
-            
+
             if ($printerName === 'default') {
                 // Print to default printer
                 $command = 'powershell -Command "Start-Process -FilePath \'' . $tempPath . '\' -Verb Print"';
@@ -275,23 +275,23 @@ class InvoiceController extends Controller
                 // Print to specific printer
                 $command = 'powershell -Command "Start-Process -FilePath \'' . $tempPath . '\' -ArgumentList \'/t\',\'/p:' . $printerName . '\'"';
             }
-            
+
             exec($command, $output, $returnCode);
-            
+
             // Clean up temp file after a delay
-            register_shutdown_function(function() use ($tempPath) {
+            register_shutdown_function(function () use ($tempPath) {
                 if (file_exists($tempPath)) {
                     unlink($tempPath);
                 }
             });
-            
+
             if ($returnCode === 0) {
                 return redirect()->back()->with('success', 'Invoice sent to printer successfully.');
             } else {
                 return redirect()->back()->with('error', 'Failed to send invoice to printer.');
             }
         }
-        
+
         // For other OS, just download the PDF
         return response()->download($tempPath)->deleteFileAfterSend(true);
     }
@@ -304,14 +304,14 @@ class InvoiceController extends Controller
         if (PHP_OS_FAMILY !== 'Windows') {
             return response()->json(['printers' => []]);
         }
-        
+
         $command = 'powershell -Command "Get-Printer | Select-Object Name | ConvertTo-Json"';
         exec($command, $output, $returnCode);
-        
+
         if ($returnCode === 0) {
             $printersJson = implode('', $output);
             $printers = json_decode($printersJson, true);
-            
+
             if (is_array($printers)) {
                 $printerNames = array_column($printers, 'Name');
             } else {
@@ -320,7 +320,7 @@ class InvoiceController extends Controller
         } else {
             $printerNames = ['Default Printer'];
         }
-        
+
         return response()->json(['printers' => $printerNames]);
     }
 

@@ -24,7 +24,7 @@ class DashboardController extends Controller
         $totalSuppliers = Supplier::count();
         $totalSalesAmount = Sale::sum('total_amount');
         $lowStockProducts = Product::where('quantity', '<=', 10)->get();
-        $lowStockRawMaterials = RawMaterial::whereColumn('quantity', '<=', 'minimum_stock_level')->get();
+        $lowStockRawMaterials = RawMaterial::whereColumn('quantity', '<=', 'min_stock_level')->get();
 
         // Order statistics
         $ordersByStatus = Order::selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
@@ -56,11 +56,11 @@ class DashboardController extends Controller
         $prevMonthPurchases = Purchase::whereBetween('purchase_date', [$prevMonthStart, $prevMonthEnd])->sum('total_amount');
         $prevMonthStaffCosts = \App\Models\StaffDailyCharge::whereBetween('charge_date', [$prevMonthStart, $prevMonthEnd])->sum('total_charge');
         $prevMonthExpenses = $prevMonthPurchases + $prevMonthStaffCosts;
-        
+
         // Calculate percentage changes
         $monthlyRevenueChange = $prevMonthSales > 0 ? (($monthlyRevenue - $prevMonthSales) / $prevMonthSales) * 100 : 0;
         $monthlyExpenseChange = $prevMonthExpenses > 0 ? (($monthlyExpenses - $prevMonthExpenses) / $prevMonthExpenses) * 100 : 0;
-        
+
         // Monthly Profit
         $monthlyProfit = $monthlyRevenue - $monthlyExpenses;
         $prevMonthProfit = $prevMonthSales - $prevMonthExpenses;
@@ -69,7 +69,7 @@ class DashboardController extends Controller
         $recentSales = Sale::with('customer')->latest()->take(10)->get();
 
         // Monthly sales & purchases (last 12 months)
-        $months = collect(range(0,11))->map(function ($i) {
+        $months = collect(range(0, 11))->map(function ($i) {
             return Carbon::now()->subMonths($i)->format('Y-m');
         })->reverse();
 
@@ -83,8 +83,8 @@ class DashboardController extends Controller
             ->groupBy('ym')
             ->pluck('total', 'ym');
 
-        $salesTotals = $months->map(fn ($m) => (float) ($salesPerMonth[$m] ?? 0))->values();
-        $purchaseTotals = $months->map(fn ($m) => (float) ($purchasesPerMonth[$m] ?? 0))->values();
+        $salesTotals = $months->map(fn($m) => (float) ($salesPerMonth[$m] ?? 0))->values();
+        $purchaseTotals = $months->map(fn($m) => (float) ($purchasesPerMonth[$m] ?? 0))->values();
 
         // Top selling products (top 5)
         $topProductsData = DB::table('sale_items')
@@ -97,8 +97,8 @@ class DashboardController extends Controller
         $topProductNames = Product::whereIn('id', $topProductsData->pluck('product_id'))
             ->pluck('name', 'id');
 
-        $topProductLabels = $topProductsData->map(fn ($row) => $topProductNames[$row->product_id] ?? '')->values();
-        $topProductQuantities = $topProductsData->map(fn ($row) => (int) $row->total_qty)->values();
+        $topProductLabels = $topProductsData->map(fn($row) => $topProductNames[$row->product_id] ?? '')->values();
+        $topProductQuantities = $topProductsData->map(fn($row) => (int) $row->total_qty)->values();
 
         return view('dashboard.index', compact(
             'totalProducts',
@@ -139,5 +139,3 @@ class DashboardController extends Controller
         return redirect()->back()->with('success', 'Monthly sales goal updated');
     }
 }
-
-
