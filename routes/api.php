@@ -158,8 +158,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/sales-stats', [DashboardController::class, 'salesStats']);
     Route::get('/dashboard/inventory-value', [DashboardController::class, 'inventoryValue']);
 
+    // routes/api.php
+Route::get('/dashboard/alerts/detail', [DashboardController::class, 'inventoryAlertsDetail']);
+Route::get('/dashboard/sales/trend', [DashboardController::class, 'salesTrend']);
+Route::get('/dashboard/purchases/trend', [DashboardController::class, 'purchasesTrend']);
+Route::get('/dashboard/categories/breakdown', [DashboardController::class, 'categoryBreakdown']);
+Route::get('/dashboard/suppliers/stats', [DashboardController::class, 'supplierStats']);
+Route::get('/dashboard/profit/estimate', [DashboardController::class, 'profitEstimate']);
     
-    
+Route::get('/dashboard/monthly-history', [DashboardController::class, 'monthlyHistory']);
+Route::get('/dashboard/top-sellers', [DashboardController::class, 'topSellers']);
+
+Route::get('/dashboard/orders/status-summary', [DashboardController::class, 'orderStatusSummary']);
+
     // User route
     Route::get('/user', function (Request $request) {
         return $request->user();
