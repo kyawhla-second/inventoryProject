@@ -45,7 +45,10 @@ return new class extends Migration
             
             // Audit trail
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamp('transaction_date');
+            
+            // FIX: Add default value to transaction_date
+            $table->timestamp('transaction_date')->useCurrent();
+            
             $table->timestamps();
             
             // Indexes

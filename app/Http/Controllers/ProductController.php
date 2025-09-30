@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\RawMaterial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -28,7 +30,8 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::all();
-        return view('products.create', compact('categories'));
+        $rawMaterials = RawMaterial::all();
+        return view('products.create', compact('categories', 'rawMaterials'));
     }
 
     public function store(Request $request)
@@ -43,6 +46,14 @@ class ProductController extends Controller
             'cost' => 'required|numeric|min:0',
             'minimum_stock_level' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
+            'raw_materials' => 'nullable|array',
+            'raw_materials.*.raw_material_id' => 'required_with:raw_materials|exists:raw_materials,id',
+            'raw_materials.*.quantity_required' => 'required_with:raw_materials|numeric|min:0.001',
+            'raw_materials.*.unit' => 'required_with:raw_materials|string|max:50',
+            'raw_materials.*.cost_per_unit' => 'nullable|numeric|min:0',
+            'raw_materials.*.waste_percentage' => 'nullable|numeric|min:0|max:100',
+            'raw_materials.*.is_primary' => 'boolean',
+            'raw_materials.*.notes' => 'nullable|string|max:500',
         ]);
 
         $input = $request->all();
@@ -54,7 +65,13 @@ class ProductController extends Controller
             $input['image'] = 'storage/images/' . $profileImage;
         }
 
-        Product::create($input);
+        // Create the product
+        $product = Product::create($input);
+
+        // Handle raw material relationships if provided
+        if ($request->has('raw_materials') && is_array($request->raw_materials)) {
+            $this->attachRawMaterials($product, $request->raw_materials);
+        }
 
         return redirect()->route('products.index')
             ->with('success', 'Product created successfully.');
@@ -68,7 +85,9 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::all();
-        return view('products.edit', compact('product', 'categories'));
+        $rawMaterials = RawMaterial::all();
+        $product->load('rawMaterials');
+        return view('products.edit', compact('product', 'categories', 'rawMaterials'));
     }
 
     public function update(Request $request, Product $product)
@@ -83,6 +102,14 @@ class ProductController extends Controller
             'cost' => 'required|numeric|min:0',
             'minimum_stock_level' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
+            'raw_materials' => 'nullable|array',
+            'raw_materials.*.raw_material_id' => 'required_with:raw_materials|exists:raw_materials,id',
+            'raw_materials.*.quantity_required' => 'required_with:raw_materials|numeric|min:0.001',
+            'raw_materials.*.unit' => 'required_with:raw_materials|string|max:50',
+            'raw_materials.*.cost_per_unit' => 'nullable|numeric|min:0',
+            'raw_materials.*.waste_percentage' => 'nullable|numeric|min:0|max:100',
+            'raw_materials.*.is_primary' => 'boolean',
+            'raw_materials.*.notes' => 'nullable|string|max:500',
         ]);
 
         $input = $request->all();
@@ -97,6 +124,13 @@ class ProductController extends Controller
 
         $product->update($input);
 
+        // Handle raw material relationships if provided
+        if ($request->has('raw_materials') && is_array($request->raw_materials)) {
+            // Remove existing relationships and add new ones
+            $product->rawMaterials()->detach();
+            $this->attachRawMaterials($product, $request->raw_materials);
+        }
+
         return redirect()->route('products.index')
             ->with('success', 'Product updated successfully.');
     }
@@ -107,5 +141,31 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
             ->with('success', 'Product deleted successfully.');
+    }
+
+    /**
+     * Attach raw materials to a product
+     */
+    private function attachRawMaterials(Product $product, array $rawMaterialsData)
+    {
+        DB::transaction(function () use ($product, $rawMaterialsData) {
+            foreach ($rawMaterialsData as $index => $materialData) {
+                if (!empty($materialData['raw_material_id']) && !empty($materialData['quantity_required'])) {
+                    $rawMaterial = RawMaterial::find($materialData['raw_material_id']);
+                    
+                    if ($rawMaterial) {
+                        $product->rawMaterials()->attach($materialData['raw_material_id'], [
+                            'quantity_required' => $materialData['quantity_required'],
+                            'unit' => $materialData['unit'],
+                            'cost_per_unit' => $materialData['cost_per_unit'] ?? $rawMaterial->cost_per_unit,
+                            'waste_percentage' => $materialData['waste_percentage'] ?? 0,
+                            'notes' => $materialData['notes'] ?? null,
+                            'is_primary' => $materialData['is_primary'] ?? false,
+                            'sequence_order' => $index + 1,
+                        ]);
+                    }
+                }
+            }
+        });
     }
 }

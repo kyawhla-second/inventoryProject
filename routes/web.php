@@ -18,6 +18,8 @@ use App\Http\Controllers\RawMaterialUsageController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\ProductionPlanController;
 use App\Http\Controllers\ProductionReportController;
+use App\Http\Controllers\ProductionDashboardController;
+use App\Http\Controllers\ProductionMaterialUsageController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\ProductRawMaterialController;
 use Illuminate\Support\Facades\Auth;
@@ -67,6 +69,17 @@ Route::middleware('auth')->group(function () {
         Route::post('recipes/{recipe}/duplicate', [RecipeController::class, 'duplicate'])->name('recipes.duplicate');
         
         // Production Planning
+        Route::get('production-dashboard', [ProductionDashboardController::class, 'index'])->name('production-plans.dashboard');
+        
+        // Production Material Usage
+        Route::get('production-material-usage', [ProductionMaterialUsageController::class, 'index'])->name('production-material-usage.index');
+        Route::get('production-material-usage/efficiency', [ProductionMaterialUsageController::class, 'efficiency'])->name('production-material-usage.efficiency');
+        Route::get('production-material-usage/stock-impact', [ProductionMaterialUsageController::class, 'stockImpact'])->name('production-material-usage.stock-impact');
+        Route::get('production-material-usage/waste-analysis', [ProductionMaterialUsageController::class, 'wasteAnalysis'])->name('production-material-usage.waste-analysis');
+        Route::get('production-plans/{productionPlan}/record-material-usage', [ProductionMaterialUsageController::class, 'recordForProduction'])->name('production-material-usage.record');
+        Route::post('production-plans/{productionPlan}/store-material-usage', [ProductionMaterialUsageController::class, 'storeForProduction'])->name('production-material-usage.store');
+        Route::get('production-plans/{productionPlan}/requirements-comparison', [ProductionMaterialUsageController::class, 'requirementsComparison'])->name('production-material-usage.requirements-comparison');
+        
         Route::resource('production-plans', ProductionPlanController::class);
         Route::patch('production-plans/{productionPlan}/approve', [ProductionPlanController::class, 'approve'])->name('production-plans.approve');
         Route::patch('production-plans/{productionPlan}/start', [ProductionPlanController::class, 'start'])->name('production-plans.start');

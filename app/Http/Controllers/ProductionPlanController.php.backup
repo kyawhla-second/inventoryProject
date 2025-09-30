@@ -270,12 +270,7 @@ class ProductionPlanController extends Controller
                 ->with('error', 'Only in-progress plans can be completed.');
         }
 
-        $updatedProducts = [];
-
-        DB::transaction(function () use ($productionPlan, &$updatedProducts) {
-            // Reload to get fresh data
-            $productionPlan->load('productionPlanItems.product');
-
+        DB::transaction(function () use ($productionPlan) {
             // Update production plan status
             $productionPlan->update([
                 'status' => 'completed',
@@ -288,47 +283,13 @@ class ProductionPlanController extends Controller
                 $quantityToAdd = $planItem->actual_quantity ?? $planItem->planned_quantity;
                 
                 if ($quantityToAdd > 0 && $planItem->product) {
-                    // Get current stock before update
-                    $oldStock = $planItem->product->quantity;
-                    
-                    // Update stock
                     $planItem->product->increment('quantity', $quantityToAdd);
-                    
-                    // Refresh to get new stock
-                    $planItem->product->refresh();
-                    $newStock = $planItem->product->quantity;
-                    
-                    // Track updated products for confirmation message
-                    $updatedProducts[] = [
-                        'name' => $planItem->product->name,
-                        'added' => $quantityToAdd,
-                        'old_stock' => $oldStock,
-                        'new_stock' => $newStock,
-                    ];
-                    
-                    // Update plan item status
-                    $planItem->update([
-                        'status' => 'completed',
-                        'actual_quantity' => $quantityToAdd,
-                        'actual_end_date' => now(),
-                    ]);
                 }
             }
         });
 
-        // Create detailed success message
-        $message = 'Production plan completed successfully! Stock updated for ' . count($updatedProducts) . ' product(s):';
-        foreach ($updatedProducts as $product) {
-            $message .= sprintf(
-                " %s (+%s, now %s)",
-                $product['name'],
-                number_format($product['added'], 2),
-                number_format($product['new_stock'], 2)
-            );
-        }
-
         return redirect()->route('production-plans.show', $productionPlan)
-            ->with('success', $message);
+            ->with('success', 'Production plan completed successfully and product quantities updated.');
     }
 
     public function materialRequirements(ProductionPlan $productionPlan)

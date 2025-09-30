@@ -7,9 +7,14 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Production Plans</h4>
-                    <a href="{{ route('production-plans.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Create Production Plan
-                    </a>
+                    <div>
+                        <a href="{{ route('production-plans.dashboard') }}" class="btn btn-info">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                        <a href="{{ route('production-plans.create') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create Production Plan
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <!-- Filters -->

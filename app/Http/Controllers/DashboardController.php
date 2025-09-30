@@ -24,7 +24,7 @@ class DashboardController extends Controller
         $totalSuppliers = Supplier::count();
         $totalSalesAmount = Sale::sum('total_amount');
         $lowStockProducts = Product::where('quantity', '<=', 10)->get();
-        $lowStockRawMaterials = RawMaterial::whereColumn('quantity', '<=', 'min_stock_level')->get();
+        $lowStockRawMaterials = RawMaterial::whereColumn('quantity', '<=', 'minimum_stock_level')->get();
 
         // Order statistics
         $ordersByStatus = Order::selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
