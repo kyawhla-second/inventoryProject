@@ -7,11 +7,10 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Production Plans</h4>
-<<<<<<< Updated upstream
+
                     <a href="{{ route('production-plans.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Create Production Plan
                     </a>
-=======
                     <div>
                         <a href="{{ route('production-plans.dashboard') }}" class="btn btn-info">
                             <i class="fas fa-chart-line"></i> Dashboard
@@ -26,7 +25,6 @@
                             <i class="fas fa-chart-line"></i> Material Efficiency
                         </a>
                     </div>
->>>>>>> Stashed changes
                 </div>
                 <div class="card-body">
                     <!-- Filters -->
