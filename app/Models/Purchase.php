@@ -13,24 +13,25 @@ class Purchase extends Model
 
     protected $fillable = [
         'supplier_id',
-        'order_id',
         'purchase_date',
         'total_amount',
-        'status',
+        'payment_status',
+        'payment_method',
+        'amount_paid',
+        'notes'
     ];
 
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class);
-    }
+    protected $casts = [
+        'purchase_date' => 'datetime'
+    ];
 
-    public function items()
+    public function purchaseItems()
     {
         return $this->hasMany(PurchaseItem::class);
     }
 
-    public function order()
+    public function supplier()
     {
-        return $this->belongsTo(Order::class);
+        return $this->belongsTo(Supplier::class);
     }
 }

@@ -45,11 +45,18 @@
                     <td>{{ $material->unit }}</td>
                     <td>@money($material->cost_per_unit)</td>
                     <td>
-                        <a href="{{ route('raw-materials.edit', $material->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{{ route('raw-materials.edit', $material->id) }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{{ route('raw-materials.purchase-history', $material->id) }}" class="btn btn-sm btn-info">
+                            <i class="fas fa-history"></i>
+                        </a>
                         <form action="{{ route('raw-materials.destroy', $material->id) }}" method="POST" style="display:inline-block;">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </form>
                     </td>
                 </tr>
