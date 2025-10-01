@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StaffController;
+use App\Http\Controllers\Api\StaffDailyChargeController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
@@ -175,4 +177,38 @@ Route::get('/dashboard/orders/status-summary', [DashboardController::class, 'ord
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+// Staff API Routes
+Route::prefix('staff')->group(function () {
+    Route::get('/', [StaffController::class, 'apiIndex']);
+    Route::post('/', [StaffController::class, 'apiStore']);
+    Route::get('/{staff}', [StaffController::class, 'apiShow']);
+    Route::put('/{staff}', [StaffController::class, 'apiUpdate']);
+    Route::delete('/{staff}', [StaffController::class, 'apiDestroy']);
+    Route::get('/{staff}/charges', [StaffController::class, 'apiCharges']);
+    Route::post('/{staff}/charges', [StaffController::class, 'apiStoreCharge']);
+    Route::get('/dashboard/stats', [StaffController::class, 'apiDashboardStats']);
+});
+
+// Staff Daily Charge API Routes
+Route::prefix('charges')->group(function () {
+    Route::get('/', [StaffDailyChargeController::class, 'index']);
+    Route::post('/', [StaffDailyChargeController::class, 'store']);
+    Route::get('/{charge}', [StaffDailyChargeController::class, 'show']);
+    Route::put('/{charge}', [StaffDailyChargeController::class, 'update']);
+    Route::delete('/{charge}', [StaffDailyChargeController::class, 'destroy']);
+    Route::post('/bulk', [StaffDailyChargeController::class, 'bulkStore']);
+    Route::post('/summary', [StaffDailyChargeController::class, 'summary']);
 });

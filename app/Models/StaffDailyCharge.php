@@ -58,4 +58,63 @@ class StaffDailyCharge extends Model
     {
         return $query->where('status', $status);
     }
+    
+    // API Methods for Mobile Frontend
+    public static function getChargesForUser($userId, $startDate = null, $endDate = null, $status = null)
+    {
+        $query = self::where('user_id', $userId);
+        
+        if ($startDate && $endDate) {
+            $query->whereBetween('charge_date', [$startDate, $endDate]);
+        }
+        
+        if ($status) {
+            $query->where('status', $status);
+        }
+        
+        return $query->orderBy('charge_date', 'desc')->get();
+    }
+    
+    public static function getSummaryForUser($userId, $startDate = null, $endDate = null)
+    {
+        $query = self::where('user_id', $userId);
+        
+        if ($startDate && $endDate) {
+            $query->whereBetween('charge_date', [$startDate, $endDate]);
+        }
+        
+        $totalHours = $query->sum('hours_worked');
+        $totalOvertimeHours = $query->sum('overtime_hours');
+        $totalCharge = $query->sum('total_charge');
+        $chargeCount = $query->count();
+        
+        return [
+            'total_hours' => $totalHours,
+            'total_overtime_hours' => $totalOvertimeHours,
+            'total_charge' => $totalCharge,
+            'charge_count' => $chargeCount
+        ];
+    }
+    
+    public static function updateChargeStatus($id, $status)
+    {
+        $charge = self::findOrFail($id);
+        $charge->status = $status;
+        $charge->save();
+        return $charge;
+    }
+    
+    public static function createBulkCharges($data)
+    {
+        $charges = [];
+        
+        foreach ($data as $chargeData) {
+            $charge = new self($chargeData);
+            $charge->calculateTotalCharge();
+            $charge->save();
+            $charges[] = $charge;
+        }
+        
+        return $charges;
+    }
 }
