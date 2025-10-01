@@ -32,6 +32,8 @@
             ->name('raw-material-usages.bulk-create-test');
             
         // ... rest of your routes
+        Route::get('raw-materials/{rawMaterial}/purchase-history', [RawMaterialController::class, 'purchaseHistory'])
+            ->name('raw-materials.purchase-history');
     });
 
     // Language switcher
