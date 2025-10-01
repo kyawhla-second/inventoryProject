@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\RawMaterial;
 use App\Models\Supplier;
-use App\Models\Purchase;
 
 class RawMaterialController extends Controller
 {
@@ -134,27 +133,5 @@ class RawMaterialController extends Controller
             DB::rollBack();
             throw $e;
         }
-    }
-
-    public function purchaseHistory(RawMaterial $rawMaterial)
-    {
-        $purchaseHistory = Purchase::whereHas('purchaseItems', function($query) use ($rawMaterial) {
-                $query->where('raw_material_id', $rawMaterial->id);
-            })
-            ->with(['supplier', 'purchaseItems' => function($query) use ($rawMaterial) {
-                $query->where('raw_material_id', $rawMaterial->id);
-            }])
-            ->orderBy('purchase_date', 'desc')
-            ->get()
-            ->map(function($purchase) {
-                $item = $purchase->purchaseItems->first();
-                $purchase->quantity = $item->quantity;
-                $purchase->unit_price = $item->unit_price;
-                return $purchase;
-            });
-    
-        $priceHistory = $purchaseHistory->sortBy('purchase_date')->take(12);
-    
-        return view('raw-materials.purchase-history', compact('rawMaterial', 'purchaseHistory', 'priceHistory'));
     }
 }
