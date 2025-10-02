@@ -327,3 +327,90 @@ class ProductionDashboardController extends Controller
         return round($totalEfficiency / $items->count(), 1);
     }
 }
+
+// Inside the index method, after the $stockLevels calculation and before the $criticalMaterials
+
+// Make sure these are defined somewhere above your query
+$startDate = $request->start_date ?? now()->subDays(30)->format('Y-m-d');
+$endDate = $request->end_date ?? now()->format('Y-m-d');
+
+$stockMovements = Product::with(['category', 'productionPlanItems', 'orderItems'])
+    ->select('id', 'name', 'quantity', 'unit', 'minimum_stock_level', 'price', 'cost')
+    ->get()
+    ->map(function ($product) use ($startDate, $endDate) {
+        // Your logic here // Get initial stock at start date (current - produced + ordered)
+        $producedQuantity = ProductionPlanItem::where('product_id', $product->id)
+        ->whereHas('productionPlan', function ($query) use ($startDate, $endDate) {
+            $query->where('status', 'completed')
+                ->whereBetween('actual_end_date', [$startDate, $endDate]);
+        })
+        ->sum('actual_quantity');
+        
+    // ... rest of your logic
+    
+    return $product;
+            
+        // Calculate initial stock at start of period
+        $initialStock = $product->quantity - $producedQuantity + $orderedQuantity;
+        
+        // Calculate stock trend (positive means increasing, negative means decreasing)
+        $stockTrend = $producedQuantity - $orderedQuantity;
+        
+        // Calculate stock status
+        $stockStatus = 'normal';
+        if ($product->quantity <= 0) {
+            $stockStatus = 'out_of_stock';
+        } elseif ($product->quantity <= ($product->minimum_stock_level * 0.5)) {
+            $stockStatus = 'critical';
+        } elseif ($product->quantity <= $product->minimum_stock_level) {
+            $stockStatus = 'low';
+        }
+        
+        // Calculate stock coverage days based on average daily usage
+        $avgDailyUsage = OrderItem::where('product_id', $product->id)
+            ->whereHas('order', function ($query) {
+                $query->where('order_date', '>=', now()->subDays(30));
+            })
+            ->sum('quantity') / 30;
+            
+        $stockCoverageDays = $avgDailyUsage > 0 ? round($product->quantity / $avgDailyUsage) : null;
+
+        $producedQuantity = ProductionPlanItem::where('product_id', $product->id)
+        ->whereHas('productionPlan', function ($query) use ($startDate, $endDate) {
+            $query->where('status', 'completed')
+                ->whereBetween('actual_end_date', [$startDate, $endDate]);
+        })
+        ->sum('actual_quantity');
+
+    // Calculate ordered quantity
+    $orderedQuantity = OrderItem::where('product_id', $product->id)
+        ->whereHas('order', function ($query) use ($startDate, $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        })
+        ->sum('quantity');
+        
+        return [
+            'product' => $product,
+            'initial_stock' => $initialStock,
+            'produced_quantity' => $producedQuantity ?? 0,
+            'ordered_quantity' => $orderedQuantity ?? 0,
+            'current_stock' => $product->quantity,
+            'minimum_stock' => $product->minimum_stock_level,
+            'stock_status' => $stockStatus,
+            'stock_trend' => $stockTrend ?? 0,
+            'stock_coverage_days' => $stockCoverageDays,
+            'stock_value' => $product->quantity * $product->cost
+        ];
+    })
+    ->sortBy(function ($item) {
+        // Sort by stock status priority (critical first, then low, then normal)
+        $priority = [
+            'out_of_stock' => 1,
+            'critical' => 2,
+            'low' => 3,
+            'normal' => 4
+        ];
+        
+        return $priority[$item['stock_status']] ?? 5;
+    })
+    ->values();

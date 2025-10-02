@@ -377,17 +377,17 @@
                                                     <i class="fas fa-box text-primary me-2"></i>
                                                 </div>
                                                 <div class="flex-grow-1">
-                                                    <small class="fw-semibold">{{ $requirement['raw_material']->name }}</small>
+                                                    <small class="fw-semibold">{{ $requirement['raw_material']->name?? "N/A" }}</small>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="text-end">
-                                            <small class="fw-semibold">{{ number_format($requirement['total_required'], 2) }}</small>
+                                            <small class="fw-semibold">{{ number_format($requirement['total_required'] ?? 0, 2) }}</small>
                                             <br>
                                             <small class="text-muted">{{ $requirement['unit'] }}</small>
                                         </td>
                                         <td class="text-end">
-                                            <small class="text-success">${{ number_format($requirement['estimated_cost'], 2) }}</small>
+                                            <small class="text-success">${{ number_format($requirement['estimated_cost'] ?? 0, 2) }}</small>
                                         </td>
                                     </tr>
                                     @endforeach
@@ -447,23 +447,32 @@
                                     @foreach($materialRequirements as $requirement)
                                     <tr>
                                         <td>
-                                            <small class="fw-semibold">{{ $requirement['raw_material']->name }}</small>
+                                            <small class="fw-semibold">{{ $requirement['raw_material']->name?? "N/A" }}</small>
                                         </td>
                                         <td class="text-end">
-                                            <small>{{ number_format($requirement['total_required'], 2) }}</small>
+                                            <small>{{ number_format($requirement['total_required'] ?? 0, 2) }}</small>
                                         </td>
                                         <td class="text-end">
-                                            <small class="{{ $requirement['raw_material']->quantity >= $requirement['total_required'] ? 'text-success' : 'text-danger' }}">
-                                                {{ number_format($requirement['raw_material']->quantity, 2) }}
-                                            </small>
+                                        <small class="{{ ($requirement['raw_material']->quantity ?? 0) >= ($requirement['total_required'] ?? 0) ? 'text-success' : 'text-danger' }}">
+    {{ number_format($requirement['raw_material']->quantity ?? 0, 2) }}
+</small>
                                         </td>
-                                        <td class="text-center">
-                                            @if($requirement['raw_material']->quantity >= $requirement['total_required'])
-                                                <i class="fas fa-check-circle text-success" title="Sufficient"></i>
-                                            @else
-                                                <i class="fas fa-exclamation-triangle text-danger" title="Insufficient"></i>
-                                            @endif
-                                        </td>
+                                        @php
+    $currentQuantity = isset($requirement['raw_material']) && is_object($requirement['raw_material']) 
+        ? $requirement['raw_material']->quantity 
+        : 0;
+    
+    $totalRequired = $requirement['total_required'] ?? 0;
+    $isSufficient = $currentQuantity >= $totalRequired;
+@endphp
+
+<td class="text-center">
+    @if($isSufficient)
+        <i class="fas fa-check-circle text-success" title="Sufficient"></i>
+    @else
+        <i class="fas fa-exclamation-triangle text-danger" title="Insufficient"></i>
+    @endif
+</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
