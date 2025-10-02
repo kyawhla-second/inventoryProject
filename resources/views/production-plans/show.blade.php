@@ -481,6 +481,56 @@
                     @endif
                 </div>
             </div>
+            <!-- Stock Impact Card -->
+            <div class="card mt-4">
+                <div class="card-header bg-transparent border-bottom">
+                    <h5 class="card-title mb-0">Stock Impact</h5>
+                </div>
+                <div class="card-body">
+                    @if($productionPlan->status === 'completed')
+                        <div class="alert alert-success mb-3">
+                            <i class="fas fa-check-circle me-2"></i> Stock levels have been updated upon completion
+                        </div>
+                    @endif
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-end">Before</th>
+                                    <th class="text-end">Change</th>
+                                    <th class="text-end">After</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($productionPlan->productionPlanItems as $item)
+                                <tr>
+                                    <td>
+                                        <small class="fw-semibold">{{ $item->product->name }}</small>
+                                    </td>
+                                    <td class="text-end">
+                                        <small>{{ number_format($item->initial_stock ?? $item->product->quantity, 2) }}</small>
+                                    </td>
+                                    <td class="text-end">
+                                        <small class="text-success">+{{ number_format($item->actual_quantity, 2) }}</small>
+                                    </td>
+                                    <td class="text-end">
+                                        <small class="fw-semibold">{{ number_format($item->product->quantity, 2) }}</small>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    @if($productionPlan->status !== 'completed')
+                        <div class="alert alert-info mt-3 mb-0">
+                            <i class="fas fa-info-circle me-2"></i> Stock will be updated when the production plan is completed
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 </div>
