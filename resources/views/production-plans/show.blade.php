@@ -279,6 +279,10 @@
                             <a href="{{ route('production-plans.material-requirements', $productionPlan) }}" class="btn btn-info">
                                 <i class="fas fa-list me-1"></i> Material Requirements
                             </a>
+                            <!-- Add near the action buttons -->
+<a href="{{ route('production-costs.show', $productionPlan) }}" class="btn btn-info">
+    <i class="fas fa-calculator"></i> View Costs
+</a>
                         </div>
                     </div>
                 </div>

@@ -353,9 +353,13 @@ class ProductionPlanController extends Controller
         // Check availability
         $requirements = collect($requirements)->map(function ($requirement) {
             $rawMaterial = RawMaterial::find($requirement['raw_material_id']);
+            
+            // Add default value if key doesn't exist
+            $totalRequired = $requirement['total_required'] ?? 0;
+            
             $requirement['available_quantity'] = $rawMaterial->quantity;
-            $requirement['shortage'] = max(0, $requirement['total_required'] - $rawMaterial->quantity);
-            $requirement['is_sufficient'] = $rawMaterial->quantity >= $requirement['total_required'];
+            $requirement['shortage'] = max(0, $totalRequired - $rawMaterial->quantity);
+            $requirement['is_sufficient'] = $rawMaterial->quantity >= $totalRequired;
             return $requirement;
         });
         // Get all available raw materials for additional usage

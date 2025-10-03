@@ -92,32 +92,54 @@ class ProductionDashboardController extends Controller
         $costVariancePercentage = $totalEstimatedCost > 0 ? ($costVariance / $totalEstimatedCost) * 100 : 0;
 
         // Products Produced with Stock Levels
-        $productsProduced = ProductionPlanItem::with(['product'])
-            ->whereHas('productionPlan', function($query) use ($startDate, $endDate) {
-                $query->where('status', 'completed')
-                      ->whereBetween('actual_end_date', [$startDate, $endDate]);
-            })
-            ->get()
-            ->groupBy('product_id')
-            ->map(function ($items) {
-                $product = $items->first()->product;
-                if (!$product) return null;
+        $productsProduced = ProductionPlanItem::with(['product', 'productionPlan'])
+        ->whereHas('productionPlan', function($query) use ($startDate, $endDate) {
+            $query->where('status', 'completed')
+                  ->whereBetween('actual_end_date', [$startDate, $endDate]);
+        })
+        ->get()
+        ->groupBy('product_id')
+        ->map(function ($items) use ($startDate, $endDate) {
+            $product = $items->first()->product;
+            if (!$product) return null;
+            
+            $totalProduced = $items->sum('actual_quantity');
+            
+            // Get raw material usage for this product within the date range
+            $usages = \App\Models\RawMaterialUsage::where('product_id', $product->id)
+                ->where('usage_type', 'production')
+                ->whereBetween('usage_date', [$startDate, $endDate])
+                ->get();
+            
+            $totalCost = $usages->sum('total_cost');
+            
+            // If no specific usage data, fallback to calculations
+            if ($totalCost == 0) {
+                // Try to calculate from quantity_used and cost_per_unit
+                $totalCost = $usages->sum(function($usage) {
+                    return $usage->quantity_used * $usage->cost_per_unit;
+                });
                 
-                $totalProduced = $items->sum('actual_quantity');
-                $totalCost = $items->sum('actual_material_cost');
-                $productionCount = $items->count();
-
-                return [
-                    'product' => $product,
-                    'total_produced' => $totalProduced,
-                    'current_stock' => $product->quantity,
-                    'total_cost' => $totalCost,
-                    'production_count' => $productionCount,
-                    'avg_cost_per_unit' => $totalProduced > 0 ? $totalCost / $totalProduced : 0,
-                    'stock_status' => $this->getStockStatus($product),
-                    'stock_value' => $product->quantity * $product->cost,
-                ];
-            })->filter()->sortByDesc('total_produced');
+                // Final fallback: use product cost
+                if ($totalCost == 0) {
+                    $totalCost = $totalProduced * $product->cost;
+                }
+            }
+            
+            $productionCount = $items->count();
+    
+            return [
+                'product' => $product,
+                'total_produced' => $totalProduced,
+                'current_stock' => $product->quantity,
+                'total_cost' => $totalCost,
+                'production_count' => $productionCount,
+                'avg_cost_per_unit' => $totalProduced > 0 ? $totalCost / $totalProduced : 0,
+                'stock_status' => $this->getStockStatus($product),
+                'stock_value' => $product->quantity * $product->cost,
+                'raw_material_usages_count' => $usages->count(), // for debugging
+            ];
+        })->filter()->sortByDesc('total_produced');
 
         // Orders Fulfilled through Production
         $ordersFulfilled = ProductionPlanItem::with(['order.customer', 'order.items', 'product', 'productionPlan'])

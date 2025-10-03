@@ -713,12 +713,18 @@
 
                     <div class="nav-section">
                         <div class="nav-section-title">{{ __('Reports') }}</div>
+                        <a class="nav-item-custom {{ request()->routeIs('production-costs.*') ? 'active' : '' }}" href="{{ route('production-costs.dashboard') }}">
+        <i class="fas fa-chart-line"></i>
+        {{ __('Cost Analysis') }}
+        
+    </a>
                         <a href="{{ route('reports.index') }}" class="nav-item-custom {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                             <i class="fas fa-chart-bar"></i>{{ __('Reports') }}
                         </a>
                         <a href="{{ route('profit-loss.index') }}" class="nav-item-custom {{ request()->routeIs('profit-loss.*') ? 'active' : '' }}">
                             <i class="fas fa-calculator"></i>{{ __('Profit & Loss') }}
                         </a>
+                        
                     </div>
                     @endif
                 @endauth
